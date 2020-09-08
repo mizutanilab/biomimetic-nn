@@ -111,3 +111,4 @@ class Schizo(layers.Layer):
   def get_halfwidth(self):
     return(self.halfwidth)
 #end class Schizo
+
