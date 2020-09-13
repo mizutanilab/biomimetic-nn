@@ -1,5 +1,6 @@
 # Schizophrenia-mimcking layer
-Schizophrenia-mimicking layer was inspired from the [analysis of humran brain area called cingulate cortex of schizophrenia patients](https://www.nature.com/articles/s41398-019-0427-4). The difference was found also in the [analysis of temporal lobe of brain](https://arxiv.org/abs/2007.00212). We have translated these findings of real human brain to the artificial neural network by designing 'schizophrenia layer'. Very interestingly this layer completely suppresses overfitting and outperforms fully connected layer. We have experienced it in many examples.
+Schizophrenia-mimicking layer was inspired from the [analysis of humran brain area called cingulate cortex of schizophrenia patients](https://www.nature.com/articles/s41398-019-0427-4). The difference was found also in the [analysis of temporal lobe of brain](https://arxiv.org/abs/2007.00212). We have translated these findings of real human brain to the artificial neural network by designing 'schizophrenia layer'. Very interestingly this layer completely suppresses overfitting and outperforms fully connected layer. We have experienced it in many examples.<BR><BR>
+![training example](pics/CIFAR_CNN_ConcurrTraj200913.png)
 
 ## How to implement schizophrenia layer in your network
 1. Download 'schizo.py' file to your working directory where your *.py file is placed.
