@@ -17,7 +17,7 @@ model = keras.Sequential([
   layers.Dense(num_class, activation='softmax')
 ])
 ```
-In this example, the Dense hidden layer was commented out to replace it with a Schizo layer of 50% parameter reduction. You can specify the reduction ratio using argument `reduction_ratio`. Parameter reduction of 50-80% seems to give good results, so we recommend 50% as a first choice and try a higher level! 
+In this example, the Dense hidden layer was commented out to replace it with a Schizo layer of 50% parameter reduction, which is defined with argument `reduction_ratio`. Parameter reduction of 50-80% seems to give good results, so we recommend 50% as a first choice and try a higher level! 
 
 ## Code used for our paper figures
 under construction.
