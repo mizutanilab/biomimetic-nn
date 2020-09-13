@@ -1,5 +1,5 @@
 # Schizophrenia-mimcking layer
-Schizophrenia-mimicking layer was inspired from the [analysis of humran brain area called cingulate cortex of schizophrenia patients](https://www.nature.com/articles/s41398-019-0427-4). The difference was found also in the [analysis of temporal lobe of brain](https://arxiv.org/abs/2007.00212). We have translated these findings of real human brain to the artificial neural network by designing 'schizophrenia layer'. Very interestingly this layer completely suppresses overfitting and outperforms fully connected layer. We have experienced it in many examples:<BR><BR>
+Schizophrenia-mimicking layer was inspired from the [analysis of humran brain area called cingulate cortex of schizophrenia patients](https://www.nature.com/articles/s41398-019-0427-4). The difference was found also in the [analysis of temporal lobe of brain](https://arxiv.org/abs/2007.00212). We have translated these findings regading the human brain network into a specially designed layer here we call 'schizophrenia layer' that mimics connection impairment in schizophrenia. Very interestingly this layer completely suppresses overfitting and outperforms fully connected layer. We have experienced it in many test examples: <BR><BR>
 ![training example](pics/CIFAR_CNN_ConcurrTraj200913.png)
 
 ## How to implement schizophrenia layer in your network
