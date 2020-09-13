@@ -5,8 +5,8 @@ Schizophrenia-mimicking layer was inspired from the [analysis of humran brain ti
 1. Download 'schizo.py' file to your working directory where your *.py file is placed.
 2. Replace 'Dense' layer with Schizo layer like this: 
 ```
-import schizo as Schizo
 from tensorflow.keras import layers
+import schizo as Schizo
 model = keras.Sequential([
   layers.Flatten(),
   # layers.Dense(512, activation='relu', kernel_initializer='he_normal'),
