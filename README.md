@@ -8,6 +8,7 @@ Schizophrenia-mimicking layer was inspired from the [analysis of humran brain ti
 from tensorflow import keras
 from tensorflow.keras import layers
 import schizo as Schizo
+
 model = keras.Sequential([
   layers.Flatten(),
   # layers.Dense(512, activation='relu', kernel_initializer='he_normal'),
