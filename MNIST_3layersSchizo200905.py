@@ -11,7 +11,7 @@ from numpy.random import seed
 import random
 import time
 import gc
-from schizo import Schizo
+import schizo
 
 stitle = 'MNIST_3layersSchizo200905'
 num_repeat = 100
@@ -58,7 +58,7 @@ for id in idlist:
       print('id=', id, 'irepeat=', irepeat, '/', num_repeat)
     model = keras.Sequential([
       layers.Flatten(),
-      Schizo(idim, reduction_ratio=id, form='diagonal', activation='relu', kernel_initializer='he_normal'),
+      schizo.Schizo(idim, reduction_ratio=id, form='diagonal', activation='relu', kernel_initializer='he_normal'),
       layers.Dense(num_class, activation='softmax')
     ])
     model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
