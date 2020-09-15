@@ -8,12 +8,12 @@ Schizophrenia-mimicking layer was inspired from our [study on nanometer-scale 3D
 ```
 from tensorflow import keras
 from tensorflow.keras import layers
-import schizo as Schizo
+import schizo
 
 model = keras.Sequential([
   layers.Flatten(),
   # layers.Dense(512, activation='relu', kernel_initializer='he_normal'),
-  Schizo(512, reduction_ratio=0.5, form='diagonal', activation='relu', kernel_initializer='he_normal'),
+  schizo.Schizo(512, reduction_ratio=0.5, form='diagonal', activation='relu', kernel_initializer='he_normal'),
   layers.Dense(num_class, activation='softmax')
 ])
 ```
