@@ -3,7 +3,7 @@ from tensorflow.keras import backend as K
 import math
 import numpy as np
 
-class Schizo(layers.Layer):
+class SczDense(layers.Layer):
   def __init__(self, output_dim, halfwidth=0, reduction_ratio=0, form='diagonal', activation='relu', kernel_initializer='he_normal', **kwargs):
     self.output_dim = output_dim
     self.halfwidth = halfwidth
@@ -11,7 +11,7 @@ class Schizo(layers.Layer):
     self.activation = activation
     self.kernel_initializer = kernel_initializer
     self.reduction_sv = reduction_ratio
-    super(Schizo, self).__init__(**kwargs)
+    super(SczDense, self).__init__(**kwargs)
   def build(self, input_shape):
     # assert K.image_data_format() == "channels_last"
     self.input_xdim = input_shape[1]
@@ -92,7 +92,7 @@ class Schizo(layers.Layer):
       #endif halfwidth
     #endif form_function
     self.window.assign(wnd)
-    super(Schizo, self).build(input_shape)
+    super(SczDense, self).build(input_shape)
   def call(self, x):
     if self.activation == 'relu':
       return(K.relu(K.dot(x, self.kernel * self.window) + self.bias))
@@ -110,5 +110,5 @@ class Schizo(layers.Layer):
     return(self.reduced_ratio)
   def get_halfwidth(self):
     return(self.halfwidth)
-#end class Schizo
+#end class SczDense
 
