@@ -13,7 +13,7 @@ import schizo
 model = keras.Sequential([
   layers.Flatten(),
   # layers.Dense(512, activation='relu', kernel_initializer='he_normal'),
-  schizo.SczDense(512, reduction_ratio=0.5, form='diagonal', activation='relu', kernel_initializer='he_normal'),
+  schizo.SczDense(512, reduction_ratio=0.5, activation='relu', kernel_initializer='he_normal'),
   layers.Dense(num_class, activation='softmax')
 ])
 ```
