@@ -58,7 +58,7 @@ for id in idlist:
       print('id=', id, 'irepeat=', irepeat, '/', num_repeat)
     model = keras.Sequential([
       layers.Flatten(),
-      schizo.Schizo(idim, reduction_ratio=id, form='diagonal', activation='relu', kernel_initializer='he_normal'),
+      schizo.SczDense(idim, reduction_ratio=id, form='diagonal', activation='relu', kernel_initializer='he_normal'),
       layers.Dense(num_class, activation='softmax')
     ])
     model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
