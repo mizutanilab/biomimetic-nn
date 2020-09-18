@@ -90,6 +90,14 @@ class SczDense(layers.Layer):
         #  for iy in range(ny):
         #    wnd[ix][iy] = 1
       #endif halfwidth
+    elif self.form == 'random':
+      wnd = np.random.rand(nx,ny)
+      wnd = np.where(wnd < self.reduction_sv, 0, 1)
+      self.num_ones = np.sum(wnd)
+      self.reduced_ratio = (self.num_weights - self.num_ones) / self.num_weights
+      if self.num_ones > 0:
+        w_corr = self.num_weights / self.num_ones
+      self.kernel.assign(self.kernel * (wnd * w_corr))
     #endif form_function
     self.window.assign(wnd)
     super(SczDense, self).build(input_shape)
