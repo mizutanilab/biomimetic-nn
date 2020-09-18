@@ -112,3 +112,90 @@ class SczDense(layers.Layer):
     return(self.halfwidth)
 #end class SczDense
 
+from tensorflow.keras.layers import Conv2D
+from tensorflow.python.keras.utils.conv_utils import conv_output_length
+import random
+class SczConv2D(Conv2D):
+  def __init__(self, filters, kernel_size, reduction_ratio=0, form='kernel', activation=None,
+               padding='valid', strides=1, dilation_rate=1, bias_regularizer=None,
+               activity_regularizer=None, kernel_constraint=None, bias_constraint=None, use_bias=True, 
+               kernel_initializer='glorot_uniform', #output_dim=1,
+               **kwargs):
+    self.reduction_sv = reduction_ratio
+    self.kernel_initializer = kernel_initializer
+    self.strides = strides
+    self.padding = padding
+    self.dilation_rate = dilation_rate
+    self.filters = filters
+    self.activation = activation
+    self.form = form
+    super(SczConv2D, self).__init__(filters,
+                                     kernel_size=kernel_size, strides=strides, padding=padding, dilation_rate=dilation_rate,
+                                     activation=activation, use_bias=use_bias, activity_regularizer=activity_regularizer,
+                                     bias_regularizer=bias_regularizer, kernel_constraint=kernel_constraint, bias_constraint=bias_constraint,
+                                     **kwargs)
+  def build(self, input_shape):
+    self.num_ones = 0
+    ksz0 = self.kernel_size[0]
+    ksz1 = self.kernel_size[1]
+    nx = input_shape[-1]
+    ny = self.filters
+    ksz = ksz0 * ksz1
+    self.num_weights = ksz * nx * ny
+    self.kernel = self.add_weight(name='kernel',
+                                  shape=(ksz0, ksz1, nx, ny),
+                                  initializer=self.kernel_initializer,
+                                  trainable=True)
+    self.window = self.add_weight(name='window', 
+                                  shape=(ksz0, ksz1, nx, ny), 
+                                  initializer='ones', 
+                                  trainable=False)
+    self.bias   = self.add_weight(name='bias',
+                                  shape=(1, ny),
+                                  initializer='zeros',
+                                  trainable=True)
+    wnd = np.zeros((ksz0, ksz1, nx, ny))
+    w_corr = 1.
+    if self.form == 'individual':
+      wnd = np.random.rand(ksz0, ksz1, nx, ny)
+      wnd = np.where(wnd < self.reduction_sv, 0, 1)
+      self.num_ones = np.sum(wnd)
+    elif self.form == 'kernel':
+      for ix in range(nx):
+        for iy in range(ny):
+          if random.random() > self.reduction_sv:
+            wnd[:, :, ix, iy] = 1
+            self.num_ones += ksz
+    #endif self.form
+    self.reduced_ratio = (self.num_weights - self.num_ones) / self.num_weights
+    if self.num_ones > 0:
+      w_corr = self.num_weights / self.num_ones
+    self.kernel.assign(self.kernel * (wnd * w_corr))
+    super(SczConv2D, self).build(input_shape)
+  def call(self, x):
+    if self.activation == 'relu':
+      return K.relu(K.conv2d(x, 
+                             (self.kernel * self.window), 
+                             strides=self.strides, padding=self.padding, dilation_rate=self.dilation_rate)
+                    + self.bias)
+    elif self.activation == 'softmax':
+      return K.softmax(K.conv2d(x, 
+                                (self.kernel * self.window),  
+                                strides=self.strides, padding=self.padding, dilation_rate=self.dilation_rate)
+                       + self.bias)
+    else:
+      return (K.conv2d(x, 
+                       (self.kernel * self.window),  
+                       strides=self.strides, padding=self.padding, dilation_rate=self.dilation_rate) 
+              + self.bias)
+    #return super(SczConv2D, self).call(x)
+  def compute_output_shape(self, input_shape):
+    length = conv_output_length(input_shape[1], self.kernel_size[0], self.padding, self.strides[0], dilation=self.dilation_rate[0])
+    return (input_shape[0], length, self.filters)
+  def get_num_zeros(self):
+    return(self.num_weights - self.num_ones)
+  def get_num_weights(self):
+    return(self.num_weights)
+  def get_reduced_ratio(self):
+    return(self.reduced_ratio)
+#Conv2D
