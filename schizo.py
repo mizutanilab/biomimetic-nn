@@ -3,7 +3,7 @@ from tensorflow.keras import backend as K
 import math
 import numpy as np
 
-class SczDense(layers.Layer):
+class SDense(layers.Layer):
   def __init__(self, output_dim, halfwidth=0, reduction_ratio=0, form='diagonal', activation='relu', kernel_initializer='he_normal', **kwargs):
     self.output_dim = output_dim
     self.halfwidth = halfwidth
@@ -11,7 +11,7 @@ class SczDense(layers.Layer):
     self.activation = activation
     self.kernel_initializer = kernel_initializer
     self.reduction_sv = reduction_ratio
-    super(SczDense, self).__init__(**kwargs)
+    super(SDense, self).__init__(**kwargs)
   def build(self, input_shape):
     # assert K.image_data_format() == "channels_last"
     self.input_xdim = input_shape[1]
@@ -100,7 +100,7 @@ class SczDense(layers.Layer):
       self.kernel.assign(self.kernel * (wnd * w_corr))
     #endif form_function
     self.window.assign(wnd)
-    super(SczDense, self).build(input_shape)
+    super(SDense, self).build(input_shape)
   def call(self, x):
     if self.activation == 'relu':
       return(K.relu(K.dot(x, self.kernel * self.window) + self.bias))
@@ -123,7 +123,7 @@ class SczDense(layers.Layer):
 from tensorflow.keras.layers import Conv2D
 from tensorflow.python.keras.utils.conv_utils import conv_output_length
 import random
-class SczConv2D(Conv2D):
+class SConv2D(Conv2D):
   def __init__(self, filters, kernel_size, reduction_ratio=0, form='kernel', activation=None,
                padding='valid', strides=1, dilation_rate=1, bias_regularizer=None,
                activity_regularizer=None, kernel_constraint=None, bias_constraint=None, use_bias=True, 
@@ -137,11 +137,11 @@ class SczConv2D(Conv2D):
     self.filters = filters
     self.activation = activation
     self.form = form
-    super(SczConv2D, self).__init__(filters,
-                                     kernel_size=kernel_size, strides=strides, padding=padding, dilation_rate=dilation_rate,
-                                     activation=activation, use_bias=use_bias, activity_regularizer=activity_regularizer,
-                                     bias_regularizer=bias_regularizer, kernel_constraint=kernel_constraint, bias_constraint=bias_constraint,
-                                     **kwargs)
+    super(SConv2D, self).__init__(filters,
+                                  kernel_size=kernel_size, strides=strides, padding=padding, dilation_rate=dilation_rate,
+                                  activation=activation, use_bias=use_bias, activity_regularizer=activity_regularizer,
+                                  bias_regularizer=bias_regularizer, kernel_constraint=kernel_constraint, bias_constraint=bias_constraint,
+                                  **kwargs)
   def build(self, input_shape):
     self.num_ones = 0
     ksz0 = self.kernel_size[0]
@@ -179,7 +179,7 @@ class SczConv2D(Conv2D):
     if self.num_ones > 0:
       w_corr = self.num_weights / self.num_ones
     self.kernel.assign(self.kernel * (wnd * w_corr))
-    super(SczConv2D, self).build(input_shape)
+    super(SConv2D, self).build(input_shape)
   def call(self, x):
     if self.activation == 'relu':
       return K.relu(K.conv2d(x, 
@@ -196,7 +196,7 @@ class SczConv2D(Conv2D):
                        (self.kernel * self.window),  
                        strides=self.strides, padding=self.padding, dilation_rate=self.dilation_rate) 
               + self.bias)
-    #return super(SczConv2D, self).call(x)
+    #return super(SConv2D, self).call(x)
   def compute_output_shape(self, input_shape):
     length = conv_output_length(input_shape[1], self.kernel_size[0], self.padding, self.strides[0], dilation=self.dilation_rate[0])
     return (input_shape[0], length, self.filters)
@@ -206,4 +206,4 @@ class SczConv2D(Conv2D):
     return(self.num_weights)
   def get_reduced_ratio(self):
     return(self.reduced_ratio)
-#Conv2D
+#SConv2D
