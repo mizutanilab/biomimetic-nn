@@ -4,7 +4,7 @@ Schizophrenia-mimicking layer was inspired from our [study on nanometer-scale 3D
 
 ## How to implement schizophrenia layer in your network
 1. Download 'schizo.py' file to your working directory where your *.py file is placed.
-2. Replace 'Dense' layer with SczDense layer like this: 
+2. Replace 'layers.Dense' layer with 'schizo.SDense' layer like this: 
 ```
 from tensorflow import keras
 from tensorflow.keras import layers
