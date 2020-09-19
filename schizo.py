@@ -118,7 +118,7 @@ class SDense(layers.Layer):
     return(self.reduced_ratio)
   def get_halfwidth(self):
     return(self.halfwidth)
-#end class SczDense
+#end class SDense
 
 from tensorflow.keras.layers import Conv2D
 from tensorflow.python.keras.utils.conv_utils import conv_output_length
