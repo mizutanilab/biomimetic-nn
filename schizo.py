@@ -179,6 +179,7 @@ class SzConv2D(Conv2D):
     if self.num_ones > 0:
       w_corr = self.num_weights / self.num_ones
     self.kernel.assign(self.kernel * (wnd * w_corr))
+    self.window.assign(wnd)
     super(SzConv2D, self).build(input_shape)
   def call(self, x):
     if self.activation == 'relu':
