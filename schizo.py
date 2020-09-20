@@ -4,7 +4,7 @@ import math
 import numpy as np
 
 class SzDense(layers.Layer):
-  def __init__(self, output_dim, halfwidth=0, reduction_ratio=0, form='diagonal', activation='relu', kernel_initializer='he_normal', **kwargs):
+  def __init__(self, output_dim, halfwidth=0, reduction_ratio=0.5, form='diagonal', activation='relu', kernel_initializer='he_normal', **kwargs):
     self.output_dim = output_dim
     self.halfwidth = halfwidth
     self.form = form
@@ -123,9 +123,8 @@ class SzDense(layers.Layer):
 from tensorflow.python.keras.utils.conv_utils import conv_output_length
 import random
 class SzConv2D(layers.Layer):
-  def __init__(self, filters, kernel_size, reduction_ratio=0, form='kernel', activation=None,
-               padding='valid', strides=1, dilation_rate=1, 
-               kernel_initializer='glorot_uniform', 
+  def __init__(self, filters, kernel_size, reduction_ratio=0.2, form='individual', activation=None,
+               padding='valid', strides=1, dilation_rate=1, kernel_initializer='glorot_uniform', 
                **kwargs):
     self.reduction_sv = reduction_ratio
     self.kernel_initializer = kernel_initializer
