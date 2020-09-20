@@ -3,9 +3,9 @@ Schizophrenia-mimicking layer was inspired from our [study on nanometer-scale 3D
 ![training example](pics/CIFAR_CNN_ConcurrTraj200913.png)
 
 ## How to implement schizophrenia-mimicking layer in your network
-Our present source runs on Tensorflow/Keras. 
+Our original code runs on Tensorflow/Keras. 
 1. Download 'schizo.py' file to your working directory where your *.py file is placed. 
-2. The followin is a tutorial code using 'SzDense' layer in place of fully-connected 'Dense' layer: 
+2. The followin is a tutorial code using a 'SzDense' layer in place of fully-connected 'Dense' layer: 
 ```
 from tensorflow import keras
 from tensorflow.keras import layers
@@ -18,7 +18,7 @@ model = keras.Sequential([
   layers.Dense(num_class, activation='softmax')
 ])
 ```
-In this example, the `Dense` hidden layer was commented out to replace it with a `schizo.SzDense` layer of 50% parameter reduction, which is defined with argument `reduction_ratio`. The best reduction ratio depends on your network configuration, but in most cases 50-80% seems to give good results. So we recommend 50% as a first choice. 
+In this example, the `layers.Dense` hidden layer was commented out to replace it with a `schizo.SzDense` layer of 50% parameter reduction, which is defined with argument `reduction_ratio`. The best reduction ratio depends on your network configuration, but in most cases 50-80% seems to give good results. So we recommend 50% as a first choice. 
 
 ## Code used for our paper figures
 under construction.
