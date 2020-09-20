@@ -120,14 +120,12 @@ class SzDense(layers.Layer):
     return(self.halfwidth)
 #end class SzDense
 
-from tensorflow.keras.layers import Conv2D
 from tensorflow.python.keras.utils.conv_utils import conv_output_length
 import random
-class SzConv2D(Conv2D):
+class SzConv2D(layers.Layer):
   def __init__(self, filters, kernel_size, reduction_ratio=0, form='kernel', activation=None,
-               padding='valid', strides=1, dilation_rate=1, bias_regularizer=None,
-               activity_regularizer=None, kernel_constraint=None, bias_constraint=None, use_bias=True, 
-               kernel_initializer='glorot_uniform', #output_dim=1,
+               padding='valid', strides=1, dilation_rate=1, 
+               kernel_initializer='glorot_uniform', 
                **kwargs):
     self.reduction_sv = reduction_ratio
     self.kernel_initializer = kernel_initializer
@@ -137,11 +135,8 @@ class SzConv2D(Conv2D):
     self.filters = filters
     self.activation = activation
     self.form = form
-    super(SzConv2D, self).__init__(filters,
-                                   kernel_size=kernel_size, strides=strides, padding=padding, dilation_rate=dilation_rate,
-                                   activation=activation, use_bias=use_bias, activity_regularizer=activity_regularizer,
-                                   bias_regularizer=bias_regularizer, kernel_constraint=kernel_constraint, bias_constraint=bias_constraint,
-                                   **kwargs)
+    self.kernel_size = kernel_size
+    super(SzConv2D, self).__init__(**kwargs)
   def build(self, input_shape):
     self.num_ones = 0
     ksz0 = self.kernel_size[0]
