@@ -3,6 +3,7 @@ Schizophrenia-mimicking layer was inspired from our [study on nanometer-scale 3D
 ![training example](pics/CIFAR_CNN_ConcurrTraj200913.png)
 
 ## How to implement schizophrenia-mimicking layer in your network
+Our present source runs on Tensorflow/Keras. 
 1. Download 'schizo.py' file to your working directory where your *.py file is placed.
 2. For example, a fully-connected 'Dense' layer can be replaced with 'SzDense' like this: 
 ```
