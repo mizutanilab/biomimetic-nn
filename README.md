@@ -20,8 +20,9 @@ model = keras.Sequential([
 ```
 In this example, the `layers.Dense` hidden layer was commented out to replace it with a `schizo.SzDense` layer of 50% parameter reduction, which is defined with argument `reduction_ratio`. The best reduction ratio depends on your network configuration, but in most cases 50-80% seems to give good results. We recommend 50% as a first choice. 
 
-## Code used for our paper figures
+## Code used for preparing our paper figures
 under construction.
 
-## Reference
-will be presented
+## References
+Mizutani et al. (2019) Three-dimensional alteration of neurites in schizophrenia. <i>Transl Psychiatry</i> <b>9</b>, 85. [nature.com](https://www.nature.com/articles/s41398-019-0427-4)
+Mizutani et al. (2020) Structural diverseness of neurons between brain areas and between cases. [arXiv](https://arxiv.org/abs/2007.00212)
