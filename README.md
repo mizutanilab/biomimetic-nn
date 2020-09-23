@@ -24,7 +24,7 @@ In this example, the `layers.Dense` hidden layer was commented out to replace it
 under construction.
 
 ## References
-Mizutani et al. (2020) Schizophrenia-mimicking layers outperform conventional neural network layers. <BR>
+Mizutani et al. (2020) Schizophrenia-mimicking layers outperform conventional neural network layers. [arXiv](https://arxiv.org/search/?query=Mizutani%2C+Ryuta&searchtype=author)<BR>
 Mizutani et al. (2019) Three-dimensional alteration of neurites in schizophrenia. <i>Transl Psychiatry</i> <b>9</b>, 85. [nature.com](https://www.nature.com/articles/s41398-019-0427-4)<BR>
 Mizutani et al. (2020) Structural diverseness of neurons between brain areas and between cases. [arXiv](https://arxiv.org/abs/2007.00212)<BR>
 
