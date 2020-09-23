@@ -14,11 +14,11 @@ import schizo
 model = keras.Sequential([
   layers.Flatten(),
   # layers.Dense(512, activation='relu', kernel_initializer='he_normal'),
-  schizo.SzDense(512, reduction_ratio=0.5, activation='relu', kernel_initializer='he_normal'),
+  schizo.SzDense(512, param_reduction=0.5, activation='relu', kernel_initializer='he_normal'),
   layers.Dense(num_class, activation='softmax')
 ])
 ```
-In this example, the `layers.Dense` hidden layer was commented out to replace it with a `schizo.SzDense` layer of 50% parameter reduction, which is defined with argument `reduction_ratio`. The best reduction ratio depends on your network configuration, but in most cases 50-70% seems to give good results. We recommend 50% as a first choice. 
+In this example, the `layers.Dense` layer was commented out to replace it with a `schizo.SzDense` layer of 50% parameter reduction, which is defined with argument `param_reduction`. The best reduction amount depends on your network configuration, but in most cases 50-70% seems to give good results. We recommend 50% as a first choice. 
 
 ## Code used for preparing our paper figures
 under construction.
