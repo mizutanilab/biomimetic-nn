@@ -3,7 +3,7 @@ Schizophrenia-mimicking layer is based on our [study on nanometer-scale 3D struc
 ![training example](paperfigs/CIFAR_CNN_ConcurrTraj200913.png)
 
 ## How to implement schizophrenia-mimicking layer in your network
-Our original code runs on Tensorflow/Keras. Schizophrenia versions of fully connected layer and convolution layer are available. Its usage is completely the same with official Keras layers, except for specifying parameter reduction ratio and its method. The default reduction ratio is 50%. A recommended (and default) reduction method is 'diagonal' for fully connected layer, or 'individual' for convolution layer. 
+Our original code runs on Tensorflow/Keras. Schizophrenia versions of fully connected layer and 2D convolution layer are available. Its usage is completely the same with official Keras layers, except for specifying parameter reduction ratio and its method. The default reduction ratio is 50%. A recommended (and default) reduction method is 'diagonal' for fully connected layer, or 'individual' for convolution layer. 
 1. Download 'schizo.py' file to your working directory where your *.py file is placed. 
 2. The following is an example code using a 'SzDense' layer in place of 'Dense' layer: 
 ```
