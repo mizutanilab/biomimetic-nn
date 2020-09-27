@@ -18,7 +18,7 @@ model = keras.Sequential([
   layers.Dense(num_class, activation='softmax')
 ])
 ```
-In this example, the `layers.Dense` layer was commented out to replace it with a `schizo.SzDense` layer of 50% parameter reduction, which is defined with argument `param_reduction`. The reduction ratio best fit to your network depends on the network configuration, but in most cases 50-70% seems to give good results. We recommend 50% as a first choice. 
+In this example, the `layers.Dense` layer was commented out to replace it with a `schizo.SzDense` layer of 50% parameter reduction, which is defined with argument `param_reduction`. The reduction ratio best fit to your network depends on the network configuration, but in most cases 50-70% seems to give good results. We recommend 50% as a first choice. No other modification of your python code is required. 
 
 ## Code used for preparing our paper figures
 under construction.
