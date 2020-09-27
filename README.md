@@ -24,8 +24,8 @@ In this example, the `layers.Dense` layer was commented out to replace it with a
 under construction.
 
 ## Release notes
+2020.9.27 Revised using python code of official Keras layers.<BR>
 2020.9.24 Original release.
-2020.9.27 Revised using python code of official Keras layers.
 
 ## References
 Mizutani et al. (2020) Schizophrenia-mimicking layers outperform conventional neural network layers. [arXiv](https://arxiv.org/abs/2009.10887)<BR>
