@@ -219,7 +219,7 @@ class SzConv(layers.Layer):
                filters,
                kernel_size,
                param_reduction=0.5, 
-               form='individual', 
+               form='diagonal', 
                strides=1,
                padding='valid',
                data_format=None,
@@ -279,6 +279,7 @@ class SzConv(layers.Layer):
     self.num_ones = 0
     self.num_weights = 0
     self.reduced_ratio = 0
+    self.halfbandwidth = 0
 
   def _validate_init(self):
     if self.filters is not None and self.filters % self.groups != 0:
@@ -360,16 +361,33 @@ class SzConv(layers.Layer):
     #window initialization
     wnd = np.zeros(kernel_shape)
     w_corr = 1.
+    nx = input_channel // self.groups
+    ny = self.filters
     if self.form == 'individual':
       wnd = np.random.random_sample(kernel_shape)
       wnd = np.where(wnd < self.reduction_sv, 0, 1)
     elif self.form == 'kernel':
-      nx = input_channel // self.groups
-      ny = self.filters
       for ix in range(nx):
         for iy in range(ny):
           if random.random() > self.reduction_sv:
             wnd[..., ix, iy] = 1
+    elif self.form == 'diagonal':
+      self.halfbandwidth = (nx*ny / math.sqrt(nx*nx + ny*ny)) * (1. - math.sqrt(self.reduction_sv)) 
+      if ny > 1:
+        rxy = (nx-1) / (ny-1)
+        hwdiv = self.halfbandwidth * math.sqrt(rxy * rxy + 1)
+        for iy in range(ny):
+          ix1 = rxy * iy - hwdiv
+          ix1 = int(ix1) + 1 if ix1 >= 0 else 0
+          if ix1 > nx-1:
+            continue
+          ix2 = rxy * iy + hwdiv
+          ix2 = math.ceil(ix2) if ix2 < nx else nx
+          wnd[..., ix1:ix2, iy:iy+1] = 1
+        #for ixiy
+      else:
+        wnd = np.ones(kernel_shape)
+      #endif ny>1
     #endif self.form
     self.num_ones = np.sum(wnd)
     self.num_weights = wnd.size
@@ -515,6 +533,8 @@ class SzConv(layers.Layer):
     return(self.num_weights)
   def get_reduced_ratio(self):
     return(self.reduced_ratio)
+  def get_halfbandwidth(self):
+    return(self.halfbandwidth)
 #calss SzConv
 
 class SzConv2D(SzConv):
@@ -522,7 +542,7 @@ class SzConv2D(SzConv):
                filters,
                kernel_size,
                param_reduction=0.5, 
-               form='individual', 
+               form='diagonal', 
                strides=(1, 1),
                padding='valid',
                data_format=None,
