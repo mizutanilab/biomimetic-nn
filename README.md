@@ -29,7 +29,9 @@ under construction.
 2020.9.24 Original release.
 
 ## References
+Mizutani et al (2021). Structural diverseness of neurons between brain areas and between cases. <I>Transl. Psychiatry</I> <B>11</B>, 49. 
+ <a href="https://doi.org/10.1038/s41398-020-01173-x">DOI</a>
+ <a href="https://www.nature.com/articles/s41398-020-01173-x.pdf">pdf</a>
 Mizutani et al. (2020) Schizophrenia-mimicking layers outperform conventional neural network layers. [arXiv](https://arxiv.org/abs/2009.10887)<BR>
 Mizutani et al. (2019) Three-dimensional alteration of neurites in schizophrenia. <i>Transl Psychiatry</i> <b>9</b>, 85. [nature.com](https://www.nature.com/articles/s41398-019-0427-4)<BR>
-Mizutani et al. (2020) Structural diverseness of neurons between brain areas and between cases. [arXiv](https://arxiv.org/abs/2007.00212)<BR>
 
