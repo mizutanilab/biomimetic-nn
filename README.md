@@ -24,6 +24,7 @@ In this example, the `layers.Dense` layer was commented out to replace it with a
 under construction.
 
 ## Release notes
+2022.1.22 Update: schizo.py compatible with TensorFlow 2.8<BR>
 2020.10.3 Diagonal window of schizophrenia layer is now released.<BR>
 2020.9.27 Revised accroding to official Keras implementations.<BR>
 2020.9.24 Original release.
