@@ -1,5 +1,8 @@
 # Schizophrenia-mimcking layer
-Schizophrenia-mimicking layer is based on our [study on nanometer-scale 3D structure of neuronal network in schizophrenia cases](https://www.nature.com/articles/s41398-019-0427-4). The synchrotron raditation nano-CT analysis revealed that neurites of the anterior cingulate cortex are thin and tortuous in schizophrenia compared to control cases. Analysis of another area called temporal cortex delineated [individual differences even between healthy controls](https://arxiv.org/abs/2007.00212). So we translated these findings into newly designed layers that mimic connection alteration in schizophrenia. Test calculations using the schizophrenia layer indicated that 80% of weights can be eliminated without any changes in training procedures or network configuration. Very interestingly the schizophrenia layer completely suppresses overfitting and outperforms fully connected layer. Here is a typical example obtained using [this python code](https://github.com/mizutanilab/schizo-nn/blob/master/paperfigs/CIFAR10_CNNSchizo200910.py) with slight changes of num_epoch=200, idlist=\[0.5, 0.0\] and num_repeat=10. Over 60% of kernel weights of convolution layers can be zeroed with the same method without any accuracy loss.<BR><BR>
+Schizophrenia-mimicking layer is based on our [study on nanometer-scale 3D structure of neuronal network in schizophrenia cases](https://www.nature.com/articles/s41398-019-0427-4). The synchrotron raditation nano-CT analysis revealed that neurites of the anterior cingulate cortex are thin and tortuous in schizophrenia compared to control cases. Analysis of another area called temporal cortex delineated [individual differences even between healthy controls](https://arxiv.org/abs/2007.00212). So we translated these findings into newly designed layers that mimic connection alteration in schizophrenia. <BR>
+![scheme](paperfigs/mizutaniFig1_schematic.jpg)
+
+Test calculations using the schizophrenia layer indicated that 80% of weights can be eliminated without any changes in training procedures or network configuration. Very interestingly the schizophrenia layer completely suppresses overfitting and outperforms fully connected layer. Here is a typical example obtained using [this python code](https://github.com/mizutanilab/schizo-nn/blob/master/paperfigs/CIFAR10_CNNSchizo200910.py) with slight changes of num_epoch=200, idlist=\[0.5, 0.0\] and num_repeat=10. Over 60% of kernel weights of convolution layers can be zeroed with the same method without any accuracy loss. This study was publised in <a href="http://journal.frontiersin.org/article/10.3389/fnbot.2022.851471/full?&utm_source=Email_to_authors_&utm_medium=Email&utm_content=T1_11.5e1_author&utm_campaign=Email_publication&field=&journalName=Frontiers_in_Neurorobotics&id=851471">Front Neurorobot</a>.<BR><BR>
 ![training example](paperfigs/CIFAR_CNN_ConcurrTraj200913.png)
 
 ## How to implement schizophrenia-mimicking layer in your network
@@ -24,12 +27,14 @@ In this example, the `layers.Dense` layer was commented out to replace it with a
 under construction.
 
 ## Release notes
+2022.3.28 Publised in <a href="http://journal.frontiersin.org/article/10.3389/fnbot.2022.851471/full?&utm_source=Email_to_authors_&utm_medium=Email&utm_content=T1_11.5e1_author&utm_campaign=Email_publication&field=&journalName=Frontiers_in_Neurorobotics&id=851471">Front Neurorobot</a>.<BR>
 2022.1.22 Update: schizo.py compatible with TensorFlow 2.8<BR>
 2020.10.3 Diagonal window of schizophrenia layer is now released.<BR>
 2020.9.27 Revised accroding to official Keras implementations.<BR>
 2020.9.24 Original release.
 
 ## References
+Mizutani et al (2022). Schizophrenia-mimicking layers outperform conventional neural network layers. <i>Front. Neurorobot.</i> <b>16</b>, 851471. <a href="http://journal.frontiersin.org/article/10.3389/fnbot.2022.851471/full?&utm_source=Email_to_authors_&utm_medium=Email&utm_content=T1_11.5e1_author&utm_campaign=Email_publication&field=&journalName=Frontiers_in_Neurorobotics&id=851471">journal</a> 
 Mizutani et al (2021). Structural diverseness of neurons between brain areas and between cases. <I>Transl. Psychiatry</I> <B>11</B>, 49. 
  <a href="https://doi.org/10.1038/s41398-020-01173-x">DOI</a>
  <a href="https://www.nature.com/articles/s41398-020-01173-x.pdf">pdf</a><BR>
