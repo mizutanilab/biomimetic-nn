@@ -27,14 +27,14 @@ In this example, the `layers.Dense` layer was commented out to replace it with a
 under construction.
 
 ## Release notes
-2022.3.28 Publised in <a href="http://journal.frontiersin.org/article/10.3389/fnbot.2022.851471/full?&utm_source=Email_to_authors_&utm_medium=Email&utm_content=T1_11.5e1_author&utm_campaign=Email_publication&field=&journalName=Frontiers_in_Neurorobotics&id=851471">Front Neurorobot</a>.<BR>
+2022.3.28 Published in <a href="https://doi.org/10.3389/fnbot.2022.851471">Front Neurorobot</a>.<BR>
 2022.1.22 Update: schizo.py compatible with TensorFlow 2.8<BR>
 2020.10.3 Diagonal window of schizophrenia layer is now released.<BR>
 2020.9.27 Revised accroding to official Keras implementations.<BR>
 2020.9.24 Original release.
 
 ## References
-Mizutani et al (2022). Schizophrenia-mimicking layers outperform conventional neural network layers. <i>Front. Neurorobot.</i> <b>16</b>, 851471. <a href="http://journal.frontiersin.org/article/10.3389/fnbot.2022.851471/full?&utm_source=Email_to_authors_&utm_medium=Email&utm_content=T1_11.5e1_author&utm_campaign=Email_publication&field=&journalName=Frontiers_in_Neurorobotics&id=851471">journal</a> 
+Mizutani et al (2022). Schizophrenia-mimicking layers outperform conventional neural network layers. <i>Front. Neurorobot.</i> <b>16</b>, 851471. <a href="https://doi.org/10.3389/fnbot.2022.851471">DOI</a><BR>
 Mizutani et al (2021). Structural diverseness of neurons between brain areas and between cases. <I>Transl. Psychiatry</I> <B>11</B>, 49. 
  <a href="https://doi.org/10.1038/s41398-020-01173-x">DOI</a>
  <a href="https://www.nature.com/articles/s41398-020-01173-x.pdf">pdf</a><BR>
