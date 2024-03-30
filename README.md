@@ -7,7 +7,7 @@ Test calculations using the schizophrenia layer indicated that 80% of weights ca
 
 ## How to implement schizophrenia-mimicking layer in your network
 Our code runs on Tensorflow/Keras. Schizophrenia versions of fully connected layer and 2D convolution layer are available. Their usage is completely the same with official Keras layers, except for specifying parameter reduction ratio and its method. The default reduction ratio is 50%. A recommended (and default) reduction method is `form='diagonal'`. 
-1. Download 'schizo.py' (Tensorflow 2.15) or 'schizo_tf2.7.py' (Tensorflow 2.7) or 'schizo_tf2.3.py' (Tensorflow 2.3) file from <a href="https://github.com/mizutanilab/schizo-nn">our repository</a> to your working directory where your *.py file is placed. Rename 'schizo_tf2.xx.py' to 'schizo.py'. 
+1. Download 'schizo.py' (Tensorflow 2.15) file from <a href="https://github.com/mizutanilab/schizo-nn">our repository</a> to your working directory where your *.py file is placed. schizo.py files for older TF versions (Tensorflow 2.3 and 2.7) are also available. If you use one of them, rename it to 'schizo.py' before exec. 
 2. The following is an example code using a 'SzDense' layer in place of 'Dense' layer: 
 ```
 from tensorflow import keras
