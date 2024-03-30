@@ -1,47 +1,20 @@
+from tensorflow.keras import layers
+from tensorflow.keras import backend as K
 import math
 import numpy as np
 
-#https://github.com/tensorflow/tensorflow/blob/r2.8/tensorflow/python/keras/layers/core.py
-from tensorflow.python.eager import backprop
-from tensorflow.python.eager import context
-from tensorflow.python.framework import constant_op
-from tensorflow.python.framework import dtypes
-from tensorflow.python.framework import ops
-from tensorflow.python.framework import sparse_tensor
-from tensorflow.python.framework import tensor_shape
+#https://github.com/tensorflow/tensorflow/blob/v2.15.0/tensorflow/python/keras/layers/core.py
+from tensorflow.python.ops import math_ops
 from tensorflow.python.keras import activations
-from tensorflow.python.keras import backend as K
-from tensorflow.python.keras import constraints
 from tensorflow.python.keras import initializers
 from tensorflow.python.keras import regularizers
-from tensorflow.python.keras.engine import keras_tensor
-from tensorflow.python.keras.engine.base_layer import Layer
-from tensorflow.python.keras.engine.input_spec import InputSpec
-from tensorflow.python.keras.utils import control_flow_util
-from tensorflow.python.keras.utils import conv_utils
-from tensorflow.python.keras.utils import generic_utils
-from tensorflow.python.keras.utils import tf_inspect
-from tensorflow.python.keras.utils import tf_utils
-from tensorflow.python.ops import array_ops
-from tensorflow.python.ops import embedding_ops
+from tensorflow.python.keras import constraints
+from tensorflow.keras.layers import InputSpec
+from tensorflow.python.framework import sparse_tensor
 from tensorflow.python.ops import gen_math_ops
-from tensorflow.python.ops import math_ops
-from tensorflow.python.ops import nn
-from tensorflow.python.ops import nn_ops
-from tensorflow.python.ops import sparse_ops
-from tensorflow.python.ops import standard_ops
-from tensorflow.python.ops import variable_scope
-from tensorflow.python.ops.ragged import ragged_getitem
-from tensorflow.python.ops.ragged import ragged_tensor
-from tensorflow.python.platform import tf_logging
-from tensorflow.python.training.tracking import base as trackable
-from tensorflow.python.util import dispatch
-from tensorflow.python.util import nest
-from tensorflow.python.util import tf_decorator
-from tensorflow.python.util.tf_export import get_canonical_name_for_symbol
-from tensorflow.python.util.tf_export import get_symbol_from_name
-from tensorflow.python.util.tf_export import keras_export
-class SzDense(Layer):
+from tensorflow.python.framework import dtypes
+from tensorflow.python.framework import tensor_shape
+class SzDense(layers.Layer):
   def __init__(self,
                units,
                halfbandwidth=0, 
@@ -87,13 +60,13 @@ class SzDense(Layer):
   def build(self, input_shape):
     dtype = dtypes.as_dtype(self.dtype or K.floatx())
     if not (dtype.is_floating or dtype.is_complex):
-      raise TypeError('Unable to build `Dense` layer with non-floating point '
+      raise TypeError('Unable to build `SzDense` layer with non-floating point '
                       'dtype %s' % (dtype,))
 
     input_shape = tensor_shape.TensorShape(input_shape)
     last_dim = tensor_shape.dimension_value(input_shape[-1])
     if last_dim is None:
-      raise ValueError('The last dimension of the inputs to `Dense` '
+      raise ValueError('The last dimension of the inputs to `SzDense` '
                        'should be defined. Found `None`.')
     self.input_spec = InputSpec(min_ndim=2, axes={-1: last_dim})
     self.kernel = self.add_weight(
@@ -188,6 +161,12 @@ class SzDense(Layer):
     self.built = True
 
   def call(self, inputs):
+    #return core_ops.dense(
+        #inputs,
+        #self.kernel * self.window,
+        #self.bias,
+        #self.activation,
+        #dtype=self._compute_dtype_object)
     if inputs.dtype.base_dtype != self._compute_dtype_object.base_dtype:
       inputs = math_ops.cast(inputs, dtype=self._compute_dtype_object)
 
@@ -243,20 +222,30 @@ class SzDense(Layer):
           % (input_shape,))
     return input_shape[:-1].concatenate(self.units)
 
+
   def get_config(self):
-    config = super(Dense, self).get_config()
+    config = super(SzDense, self).get_config()
     config.update({
-        'units': self.units,
-        'activation': activations.serialize(self.activation),
-        'use_bias': self.use_bias,
-        'kernel_initializer': initializers.serialize(self.kernel_initializer),
-        'bias_initializer': initializers.serialize(self.bias_initializer),
-        'kernel_regularizer': regularizers.serialize(self.kernel_regularizer),
-        'bias_regularizer': regularizers.serialize(self.bias_regularizer),
+        'units':
+            self.units,
+        'activation':
+            activations.serialize(self.activation),
+        'use_bias':
+            self.use_bias,
+        'kernel_initializer':
+            initializers.serialize(self.kernel_initializer),
+        'bias_initializer':
+            initializers.serialize(self.bias_initializer),
+        'kernel_regularizer':
+            regularizers.serialize(self.kernel_regularizer),
+        'bias_regularizer':
+            regularizers.serialize(self.bias_regularizer),
         'activity_regularizer':
             regularizers.serialize(self.activity_regularizer),
-        'kernel_constraint': constraints.serialize(self.kernel_constraint),
-        'bias_constraint': constraints.serialize(self.bias_constraint)
+        'kernel_constraint':
+            constraints.serialize(self.kernel_constraint),
+        'bias_constraint':
+            constraints.serialize(self.bias_constraint)
     })
     return config
   def get_num_zeros(self):
@@ -269,33 +258,26 @@ class SzDense(Layer):
     return(self.halfbandwidth)
 #class SzDense
 
-#https://github.com/tensorflow/tensorflow/blob/r2.8/tensorflow/python/keras/layers/convolutional.py
+
+#https://github.com/tensorflow/tensorflow/blob/v2.15.0/tensorflow/python/keras/layers/convolutional.py
+#only supports Conv2D
 import functools
+import six
 
-#from tensorflow.python.eager import context
-#from tensorflow.python.framework import tensor_shape
-#from tensorflow.python.keras import activations
-#from tensorflow.python.keras import backend
-#from tensorflow.python.keras import constraints
-#from tensorflow.python.keras import initializers
-#from tensorflow.python.keras import regularizers
-#from tensorflow.python.keras.engine.base_layer import Layer
+from tensorflow.python.eager import context
+
 #from tensorflow.python.keras.engine.input_spec import InputSpec
-
-#from tensorflow.python.keras.utils import conv_utils
-#from tensorflow.python.keras.utils import tf_utils
-#from tensorflow.python.ops import array_ops
-#from tensorflow.python.ops import nn
-#from tensorflow.python.ops import nn_ops
-#from tensorflow.python.util.tf_export import keras_export
-
-class SzConv(Layer):
+from tensorflow.keras.layers import InputSpec
+from tensorflow.python.keras.utils import conv_utils
+from tensorflow.python.ops import nn
+from tensorflow.python.ops import nn_ops
+class SzConv(layers.Layer):
   def __init__(self,
                rank,
                filters,
                kernel_size,
                param_reduction=0.5, 
-               form='individual', 
+               form='diagonal', 
                strides=1,
                padding='valid',
                data_format=None,
@@ -376,9 +358,9 @@ class SzConv(Layer):
                        'Received: %s' % (self.strides,))
 
     if (self.padding == 'causal' and not isinstance(self,
-                                                    (SzConv1D, SzSeparableConv1D))):
-      raise ValueError('Causal padding is only supported for `SzConv1D`'
-                       'and `SzSeparableConv1D`.')
+                                                    (Conv1D, SeparableConv1D))):
+      raise ValueError('Causal padding is only supported for `Conv1D`'
+                       'and `SeparableConv1D`.')
 
   def build(self, input_shape):
     input_shape = tensor_shape.TensorShape(input_shape)
@@ -400,6 +382,7 @@ class SzConv(Layer):
         constraint=self.kernel_constraint,
         trainable=True,
         dtype=self.dtype)
+
     self.window = self.add_weight(name='window', 
                                   shape=kernel_shape, 
                                   initializer='ones', 
@@ -430,7 +413,7 @@ class SzConv(Layer):
     tf_strides = list(self.strides)
 
     tf_op_name = self.__class__.__name__
-    if tf_op_name == 'SzConv1D':
+    if tf_op_name == 'Conv1D':
       tf_op_name = 'conv1d'  # Backwards compat.
 
     self._convolution_op = functools.partial(
@@ -580,7 +563,7 @@ class SzConv(Layer):
         'bias_constraint':
             constraints.serialize(self.bias_constraint)
     }
-    base_config = super(Conv, self).get_config()
+    base_config = super(SzConv, self).get_config()
     return dict(list(base_config.items()) + list(config.items()))
 
   def _compute_causal_padding(self, inputs):
@@ -617,6 +600,7 @@ class SzConv(Layer):
     if not isinstance(op_padding, (list, tuple)):
       op_padding = op_padding.upper()
     return op_padding
+
   def get_num_zeros(self):
     return(self.num_weights - self.num_ones)
   def get_num_weights(self):
@@ -625,12 +609,14 @@ class SzConv(Layer):
     return(self.reduced_ratio)
   def get_halfbandwidth(self):
     return(self.halfbandwidth)
-#class SzConv
+#calss SzConv
 
 class SzConv2D(SzConv):
- def __init__(self,
+  def __init__(self,
                filters,
                kernel_size,
+               param_reduction=0.5, 
+               form='diagonal', 
                strides=(1, 1),
                padding='valid',
                data_format=None,
@@ -650,6 +636,8 @@ class SzConv2D(SzConv):
         rank=2,
         filters=filters,
         kernel_size=kernel_size,
+        param_reduction=param_reduction, 
+        form=form, 
         strides=strides,
         padding=padding,
         data_format=data_format,
@@ -666,4 +654,5 @@ class SzConv2D(SzConv):
         bias_constraint=constraints.get(bias_constraint),
         **kwargs)
 #class SzConv2D
+
 
