@@ -1,7 +1,7 @@
 # Bio-mimetic layers
 
-## Code used in our paper
-Our most recent code is available from: <a href="https://github.com/mizutanilab/schizo-nn/tree/master/papercodes">here</a>.
+## Code used in our recent paper
+Our most recent code is available from <a href="https://github.com/mizutanilab/schizo-nn/tree/master/papercodes">here</a>.
 
 ## The original schizophrenia-mimicking layer
 The original schizophrenia-mimicking layer is based on our [study on nanometer-scale 3D structure of neuronal network in schizophrenia cases](https://www.nature.com/articles/s41398-019-0427-4). The synchrotron raditation nano-CT analysis revealed that neurites of the anterior cingulate cortex are thin and tortuous in schizophrenia compared to control cases. Analysis of another area called temporal cortex delineated [individual differences even between healthy controls](https://arxiv.org/abs/2007.00212). So we translated these findings into newly designed layers that mimic connection alteration in schizophrenia. <BR>
