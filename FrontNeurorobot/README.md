@@ -6,7 +6,7 @@ Test calculations using the connection-constraint layer indicated that 80% of we
 
 ## How to implement the schizophrenia-mimicking layer in your network
 Our code runs on Tensorflow/Keras. Connection-constraint versions of fully connected layer and 2D convolution layer are available. Their usage is completely the same with official Keras layers, except for specifying parameter reduction ratio and its method. The default reduction ratio is 50%, and the default reduction method is `form='diagonal'`. 
-1. Download 'schizo.py' (Tensorflow 2.15) file from <a href="https://github.com/mizutanilab/biomimetic-nn/FrontNeurorobot/)">our repository</a> to your working directory where your *.py file is placed. You can also find schizo.py files for older TF versions (Tensorflow 2.3 and 2.7). If you use them, download one of those versions compatible with your TF environment and rename the 'schizo_tf2.x.py' file to 'schizo.py'. 
+1. Download 'schizo.py' (Tensorflow 2.15) file from <a href="https://github.com/mizutanilab/biomimetic-nn/tree/master/FrontNeurorobot)">our repository</a> to your working directory where your *.py file is placed. You can also find schizo.py files for older TF versions (Tensorflow 2.3 and 2.7). If you use them, download one of those versions compatible with your TF environment and rename the 'schizo_tf2.x.py' file to 'schizo.py'. 
 2. The following is an example code using a 'SzDense' layer in place of 'Dense' layer: 
 ```
 from tensorflow import keras
