@@ -1,5 +1,5 @@
 # Bio-mimetic layers
-We have been studying brain tissues of <a href="https://dx.doi.org/10.1038/s41398-019-0427-4">humans</a>, <A href="http://doi.org/10.1038/srep35061">mice</A>, and <a href="http://dx.doi.org/10.1016/j.jsb.2013.08.012">fruit flies</a>. We implemented the obtained results into artificial neural networks and designed architectures that outperform conventional AIs.
+We have been studying brain tissues of <a href="https://dx.doi.org/10.1038/s41398-019-0427-4">humans</a>, <A href="http://doi.org/10.1038/srep35061">mice</A>, and <a href="http://dx.doi.org/10.1016/j.jsb.2013.08.012">fruit flies</a>. We implemented the obtained results into artificial neural networks to design architectures that outperform conventional AIs.
 
 ## Mouse-mimetic layer
 Mouse-mimetic layer is based on our study on nanometer-scale 3D structures of mouse brain tissues and also on those of human, such as [this](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0287646). We implemented those mouse-mimetic layers in generative AIs and found that the resultant mouse AI excels at generating some kind of images. <BR>
