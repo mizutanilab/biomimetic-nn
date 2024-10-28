@@ -24,7 +24,7 @@ model = keras.Sequential([
 In this example, the `layers.Conv2D` layer was commented out to replace it with a `mouse.mConv2D` layer of about 50% parameter reduction, which is defined with argument `window2d_width`. The reduction ratio best fit to your code depends on a variety of factors, but in most cases 30-50% seems to yield good results. We recommend `window2d_width=0.5` as a first choice. The arguments `input2d_width` and `output2d_width` should be close to the square root of channel dimensions of input and output layers, respectively. No other modification of your python code is required. 
 
 ## The original schizophrenia-mimicking layer
-The original schizophrenia-mimicking layer is based on our [study on nanometer-scale 3D structure of neuronal network in schizophrenia cases](https://www.nature.com/articles/s41398-019-0427-4). We translated the findings into newly designed layers that mimic connection constraints in schizophrenia. Please find the code used in our paper <a href="https://github.com/mizutanilab/schizo-nn">here</a>.<BR>
+The original schizophrenia-mimicking layer is based on our [study on nanometer-scale 3D structure of neuronal network in schizophrenia cases](https://www.nature.com/articles/s41398-019-0427-4). We translated the findings into newly designed layers that mimic connection constraints in schizophrenia. Please find the code used in our paper <a href="https://github.com/mizutanilab/biomimetic-nn/tree/master/FrontNeurorobot">here</a>.<BR>
 
 ## Release notes
 2024.10.29 Fully revised in response to the release of mouselayers.py<BR>
