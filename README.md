@@ -5,7 +5,7 @@ We have been studying brain tissues of <a href="https://dx.doi.org/10.1038/s4139
 Mouse-mimetic layer is based on our study on nanometer-scale 3D structures of mouse brain tissues and also on those of human, such as [this](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0287646). We implemented those mouse-mimetic layers in generative AIs and found that the resultant mouse AI excels at generating some kind of images. <BR>
 
 ## How to implement the mouse-mimetic layer in your network
-Our code runs on Tensorflow 2.16 / Keras 3.3. Connection-constraint versions of the fully connected layer and the 2D convolutional layers are available. Their usage is the same with official Keras layers, except for specifying parameter %usage and its method. The reduction method for the mouse layer is `2d` and its recommended window width is 0.4-0.6, which corresponds to the parameter %usage of 35-60%. 
+Our code runs on Tensorflow 2.16 / Keras 3.3. Connection-constraint versions of the fully connected layer and the 2D convolutional layers are available. Their usage is the same with the official Keras layers, except for specifying parameter %usage and its method. The reduction method for the mouse layer is `2d` and its recommended window width is 0.4-0.6, which corresponds to the parameter %usage of 35-60%. 
 1. Download `mouselayers.py` (Tensorflow 2.16) file from <a href="https://github.com/mizutanilab/biomimetic-nn">our repository</a> to your working directory where your *.py file is placed.  
 2. The following is an example code using a `mConv2D` layer in place of the `Conv2D` layer: 
 ```
@@ -15,8 +15,8 @@ from keras import layers
 model = keras.Sequential([
   layers.Dense(4 * 4 * 1024, activation='relu'),
   layers.Reshape((4, 4, 1024)),
-  # layers.Conv2D(512, kernel_size=5, strides=2, padding="same"),
-  mouse.mConv2D(512, form='2d', input2d_width=32, output2d_width=32, window2d_width=0.5, kernel_size=5, strides=2, padding="same"),
+  # layers.Conv2D(512, kernel_size=5, strides=2, padding='same'),
+  mouse.mConv2D(512, form='2d', input2d_width=32, output2d_width=32, window2d_width=0.5, kernel_size=5, strides=2, padding='same'),
   layers.Activation('relu'),
   layers.Dense(num_class, activation='sigmoid')
 ])
