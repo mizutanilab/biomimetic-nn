@@ -1,7 +1,7 @@
 # Bio-mimetic layers
 We have been studying brain tissues of <a href="https://dx.doi.org/10.1038/s41398-019-0427-4">humans</a>, <A href="http://doi.org/10.1038/srep35061">mice</A>, and <a href="http://dx.doi.org/10.1016/j.jsb.2013.08.012">fruit flies</a>. We implemented the obtained results into artificial neural networks to design architectures that outperform conventional AIs.
 
-## Mouse-mimetic layer used in our study 'Murine AI excels at cats and cheese ...'
+## Mouse-mimetic layer used in our study: Murine AI excels at cats and cheese...
 Mouse-mimetic layer is based on our study on nanometer-scale 3D structures of mouse brain tissues and also on those of human, such as [this](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0287646). We implemented the mouse-mimetic convolutional layers in generative AIs and found that the resultant mouse AI excels at generating cat face and cheese photos, but underperforms for human faces and birds. Python scripts used in our <a href="https://arxiv.org/abs/2410.20735">study</a> are available from <a href="https://github.com/mizutanilab/biomimetic-nn/tree/master/mouse">here</a>.<BR>
 
 ## How to implement the mouse-mimetic layer in your network
