@@ -32,7 +32,7 @@ The original schizophrenia-mimicking layer is based on our [study on nanometer-s
 2020.9.24 Release of this repo.
 
 ## References
-Saiga et al (2024). Structural differences between human and mouse neurons and their implementation in generative AIs. <a href="https://arxiv.org/abs/2410.20735">arXiv</a><BR>
+Saiga et al (2025). Structural differences between human and mouse neurons and their implementation in generative AIs. <i>Sci. Rep.</i> in press. <a href="https://arxiv.org/abs/2410.20735">arXiv</a><BR>
 Mizutani et al (2022). Schizophrenia-mimicking layers outperform conventional neural network layers. <i>Front. Neurorobot.</i> <b>16</b>, 851471. <a href="https://doi.org/10.3389/fnbot.2022.851471">DOI</a><BR>
 Mizutani et al (2021). Structural diverseness of neurons between brain areas and between cases. <I>Transl. Psychiatry</I> <B>11</B>, 49. 
  <a href="https://doi.org/10.1038/s41398-020-01173-x">DOI</a>
