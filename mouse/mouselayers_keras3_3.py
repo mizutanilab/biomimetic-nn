@@ -1,5 +1,5 @@
-import tensorflow
-#https://github.com/keras-team/keras/blob/v3.10.0/keras/src/layers/core/dense.py
+#https://github.com/keras-team/keras/blob/master/keras/src/layers/core/dense.py
+
 import ml_dtypes
 
 from keras.src import activations
@@ -61,11 +61,6 @@ class mDense(Layer):
             computation cost of fine-tuning large dense layers.
             You can also enable LoRA on an existing
             `Dense` layer by calling `layer.enable_lora(rank)`.
-        lora_alpha: Optional integer. If set, this parameter scales the
-            low-rank adaptation delta (computed as the product of two lower-rank
-            trainable matrices) during the forward pass. The delta is scaled by
-            `lora_alpha / lora_rank`, allowing you to fine-tune the strength of
-            the LoRA adjustment independently of `lora_rank`.
 
     Input shape:
         N-D tensor with shape: `(batch_size, ..., input_dim)`.
@@ -98,7 +93,6 @@ class mDense(Layer):
         kernel_constraint=None,
         bias_constraint=None,
         lora_rank=None,
-        lora_alpha=None,
         **kwargs,
     ):
         super().__init__(activity_regularizer=activity_regularizer, **kwargs)
@@ -112,7 +106,6 @@ class mDense(Layer):
         self.kernel_constraint = constraints.get(kernel_constraint)
         self.bias_constraint = constraints.get(bias_constraint)
         self.lora_rank = lora_rank
-        self.lora_alpha = lora_alpha if lora_alpha is not None else lora_rank
         self.lora_enabled = False
         self.input_spec = InputSpec(min_ndim=2)
         self.supports_masking = True
@@ -129,19 +122,26 @@ class mDense(Layer):
         self.reduced_ratio = 0
 
     def build(self, input_shape):
-        kernel_shape = (input_shape[-1], self.units)
-        if self.quantization_mode:
-            self.quantized_build(kernel_shape, mode=self.quantization_mode)
-        if self.quantization_mode != "int8":
+        input_dim = input_shape[-1]
+        # We use `self._dtype_policy` to check to avoid issues in torch dynamo
+        is_quantized = isinstance(
+            self._dtype_policy, dtype_policies.QuantizedDTypePolicy
+        )
+        if is_quantized:
+            self.quantized_build(
+                input_shape, mode=self.dtype_policy.quantization_mode
+            )
+        if not is_quantized or self.dtype_policy.quantization_mode != "int8":
             # If the layer is quantized to int8, `self._kernel` will be added
             # in `self._int8_build`. Therefore, we skip it here.
             self._kernel = self.add_weight(
                 name="kernel",
-                shape=kernel_shape,
+                shape=(input_dim, self.units),
                 initializer=self.kernel_initializer,
                 regularizer=self.kernel_regularizer,
                 constraint=self.kernel_constraint,
             )
+
         if self.use_bias:
             self.bias = self.add_weight(
                 name="bias",
@@ -152,7 +152,7 @@ class mDense(Layer):
             )
         else:
             self.bias = None
-        self.input_spec = InputSpec(min_ndim=2, axes={-1: input_shape[-1]})
+        self.input_spec = InputSpec(min_ndim=2, axes={-1: input_dim})
 
         #window init
         self.num_ones = 0
@@ -283,9 +283,9 @@ class mDense(Layer):
                 "You must build the layer before accessing `kernel`."
             )
         if self.lora_enabled:
-            return self._kernel + (
-                self.lora_alpha / self.lora_rank
-            ) * ops.matmul(self.lora_kernel_a, self.lora_kernel_b)
+            return self._kernel + ops.matmul(
+                self.lora_kernel_a, self.lora_kernel_b
+            )
         return self._kernel
 
     def call(self, inputs, training=None):
@@ -303,11 +303,7 @@ class mDense(Layer):
         return tuple(output_shape)
 
     #def enable_lora(
-    #    self,
-    #    rank,
-    #    lora_alpha=None,
-    #    a_initializer="he_uniform",
-    #    b_initializer="zeros",
+    #    self, rank, a_initializer="he_uniform", b_initializer="zeros"
     #):
     #    if self.kernel_constraint:
     #        raise ValueError(
@@ -321,7 +317,8 @@ class mDense(Layer):
     #        )
     #    if self.lora_enabled:
     #        raise ValueError(
-    #            "lora is already enabled. This can only be done once per layer."
+    #            "lora is already enabled. "
+    #            "This can only be done once per layer."
     #        )
     #    self._tracker.unlock()
     #    self.lora_kernel_a = self.add_weight(
@@ -340,7 +337,6 @@ class mDense(Layer):
     #    self._tracker.lock()
     #    self.lora_enabled = True
     #    self.lora_rank = rank
-    #    self.lora_alpha = lora_alpha if lora_alpha is not None else rank
 
     #def save_own_variables(self, store):
     #    # Do nothing if the layer isn't yet built
@@ -352,10 +348,11 @@ class mDense(Layer):
     #    target_variables = [kernel_value]
     #    if self.use_bias:
     #        target_variables.append(self.bias)
-    #    if self.quantization_mode is not None:
-    #        if self.quantization_mode == "int8":
+    #    if isinstance(self.dtype_policy, dtype_policies.QuantizedDTypePolicy):
+    #        mode = self.dtype_policy.quantization_mode
+    #        if mode == "int8":
     #            target_variables.append(kernel_scale)
-    #        elif self.quantization_mode == "float8":
+    #        elif mode == "float8":
     #            target_variables.append(self.inputs_scale)
     #            target_variables.append(self.inputs_amax_history)
     #            target_variables.append(self.kernel_scale)
@@ -363,7 +360,9 @@ class mDense(Layer):
     #            target_variables.append(self.outputs_grad_scale)
     #            target_variables.append(self.outputs_grad_amax_history)
     #        else:
-    #            raise self._quantization_mode_error(self.quantization_mode)
+    #            raise NotImplementedError(
+    #                self.QUANTIZATION_MODE_ERROR_TEMPLATE.format(mode=mode)
+    #            )
     #    for i, variable in enumerate(target_variables):
     #        store[str(i)] = variable
 
@@ -378,10 +377,11 @@ class mDense(Layer):
     #    target_variables = [self._kernel]
     #    if self.use_bias:
     #        target_variables.append(self.bias)
-    #    if self.quantization_mode is not None:
-    #        if self.quantization_mode == "int8":
+    #    if isinstance(self.dtype_policy, dtype_policies.QuantizedDTypePolicy):
+    #        mode = self.dtype_policy.quantization_mode
+    #        if mode == "int8":
     #            target_variables.append(self.kernel_scale)
-    #        elif self.quantization_mode == "float8":
+    #        elif mode == "float8":
     #            target_variables.append(self.inputs_scale)
     #            target_variables.append(self.inputs_amax_history)
     #            target_variables.append(self.kernel_scale)
@@ -389,7 +389,9 @@ class mDense(Layer):
     #            target_variables.append(self.outputs_grad_scale)
     #            target_variables.append(self.outputs_grad_amax_history)
     #        else:
-    #            raise self._quantization_mode_error(self.quantization_mode)
+    #            raise NotImplementedError(
+    #                self.QUANTIZATION_MODE_ERROR_TEMPLATE.format(mode=mode)
+    #            )
     #    for i, variable in enumerate(target_variables):
     #        variable.assign(store[str(i)])
     #    if self.lora_enabled:
@@ -415,7 +417,6 @@ class mDense(Layer):
     #    }
     #    if self.lora_rank:
     #        config["lora_rank"] = self.lora_rank
-    #        config["lora_alpha"] = self.lora_alpha
     #    return {**base_config, **config}
 
     #def _check_load_own_variables(self, store):
@@ -454,30 +455,45 @@ class mDense(Layer):
 
     # Quantization-related (int8 and float8) methods
 
-    #def quantized_build(self, kernel_shape, mode):
+    #QUANTIZATION_MODE_ERROR_TEMPLATE = (
+    #    f"Invalid quantization mode. Expected one of "
+    #    f"{dtype_policies.QUANTIZATION_MODES}. "
+    #    "Received: quantization_mode={mode}"
+    #)
+
+    #def quantized_build(self, input_shape, mode):
     #    if mode == "int8":
+    #        input_dim = input_shape[-1]
+    #        kernel_shape = (input_dim, self.units)
     #        self._int8_build(kernel_shape)
     #    elif mode == "float8":
     #        self._float8_build()
     #    else:
-    #        raise self._quantization_mode_error(mode)
-    #    self._is_quantized = True
+    #        raise NotImplementedError(
+    #            self.QUANTIZATION_MODE_ERROR_TEMPLATE.format(mode=mode)
+    #        )
 
-    #def _int8_build(self, kernel_shape):
+    #def _int8_build(
+    #    self,
+    #    kernel_shape,
+    #    kernel_initializer="zeros",
+    #    kernel_scale_initializer="ones",
+    #):
     #    self.inputs_quantizer = quantizers.AbsMaxQuantizer(axis=-1)
     #    self._kernel = self.add_weight(
     #        name="kernel",
     #        shape=kernel_shape,
-    #        initializer="zeros",
+    #        initializer=kernel_initializer,
     #        dtype="int8",
     #        trainable=False,
     #    )
     #    self.kernel_scale = self.add_weight(
     #        name="kernel_scale",
     #        shape=(self.units,),
-    #        initializer="ones",
+    #        initializer=kernel_scale_initializer,
     #        trainable=False,
     #    )
+    #    self._is_quantized = True
 
     #def _float8_build(self):
     #    from keras.src.dtype_policies import QuantizedFloat8DTypePolicy
@@ -497,7 +513,6 @@ class mDense(Layer):
     #        "dtype": "float32",  # Always be float32
     #        "trainable": True,
     #        "autocast": False,
-    #        "overwrite_with_gradient": True,
     #    }
     #    amax_history_kwargs = {
     #        "shape": (amax_history_length,),
@@ -505,7 +520,6 @@ class mDense(Layer):
     #        "dtype": "float32",  # Always be float32
     #        "trainable": True,
     #        "autocast": False,
-    #        "overwrite_with_gradient": True,
     #    }
     #    self.inputs_scale = self.add_weight(name="inputs_scale", **scale_kwargs)
     #    self.inputs_amax_history = self.add_weight(
@@ -521,8 +535,30 @@ class mDense(Layer):
     #    self.outputs_grad_amax_history = self.add_weight(
     #        name="outputs_grad_amax_history", **amax_history_kwargs
     #    )
+    #    # We need to set `overwrite_with_gradient=True` to instruct the
+    #    # optimizer to directly overwrite these variables with their computed
+    #    # gradients during training
+    #    self.inputs_scale.overwrite_with_gradient = True
+    #    self.inputs_amax_history.overwrite_with_gradient = True
+    #    self.kernel_scale.overwrite_with_gradient = True
+    #    self.kernel_amax_history.overwrite_with_gradient = True
+    #    self.outputs_grad_scale.overwrite_with_gradient = True
+    #    self.outputs_grad_amax_history.overwrite_with_gradient = True
+    #    self._is_quantized = True
 
-    def _int8_call(self, inputs, training=None):
+    def quantized_call(self, inputs, training=None):
+
+        if self.dtype_policy.quantization_mode == "int8":
+            return self._int8_call(inputs)
+        elif self.dtype_policy.quantization_mode == "float8":
+            return self._float8_call(inputs, training=training)
+        else:
+            mode = self.dtype_policy.quantization_mode
+            raise NotImplementedError(
+                self.QUANTIZATION_MODE_ERROR_TEMPLATE.format(mode=mode)
+            )
+
+    def _int8_call(self, inputs):
         @ops.custom_gradient
         def matmul_with_inputs_gradient(inputs, kernel, kernel_scale):
             def grad_fn(*args, upstream=None):
@@ -551,7 +587,7 @@ class mDense(Layer):
         if self.lora_enabled:
             lora_x = ops.matmul(inputs, self.lora_kernel_a)
             lora_x = ops.matmul(lora_x, self.lora_kernel_b)
-            x = ops.add(x, (self.lora_alpha / self.lora_rank) * lora_x)
+            x = ops.add(x, lora_x)
         if self.bias is not None:
             x = ops.add(x, self.bias)
         if self.activation is not None:
@@ -650,30 +686,56 @@ class mDense(Layer):
             x = self.activation(x)
         return x
 
-    #def quantize(self, mode, type_check=True):
-    #    # Prevent quantization of the subclasses
-    #    if type_check and (type(self) is not Dense):
-    #        raise self._not_implemented_error(self.quantize)
+    #def quantize(self, mode):
+    #    import gc
 
-    #    kernel_shape = self._kernel.shape
+    #    # Prevent quantization of the subclasses
+    #    if type(self) is not mDense:
+    #        raise NotImplementedError(
+    #            f"Layer {self.__class__.__name__} does not have a `quantize()` "
+    #            "method implemented."
+    #        )
+    #    self._check_quantize_args(mode, self.compute_dtype)
+
+    #    self._tracker.unlock()
     #    if mode == "int8":
+    #        # Quantize `self._kernel` to int8 and compute corresponding scale
     #        kernel_value, kernel_scale = quantizers.abs_max_quantize(
-    #            self._kernel, axis=0, to_numpy=True
+    #            self._kernel, axis=0
     #        )
     #        kernel_scale = ops.squeeze(kernel_scale, axis=0)
+    #        self._untrack_variable(self._kernel)
+    #        kernel_shape = self._kernel.shape
     #        del self._kernel
-    #    self.quantized_build(kernel_shape, mode)
-    #    if mode == "int8":
-    #        self._kernel.assign(kernel_value)
-    #        self.kernel_scale.assign(kernel_scale)
+    #        # Utilize a lambda expression as an initializer to prevent adding a
+    #        # large constant to the computation graph.
+    #        self._int8_build(
+    #            kernel_shape,
+    #            lambda shape, dtype: kernel_value,
+    #            lambda shape, dtype: kernel_scale,
+    #        )
+    #    elif mode == "float8":
+    #        self._float8_build()
+    #    else:
+    #        raise NotImplementedError(
+    #            self.QUANTIZATION_MODE_ERROR_TEMPLATE.format(mode=mode)
+    #        )
+    #    self._tracker.lock()
 
     #    # Set new dtype policy
-    #    if self.dtype_policy.quantization_mode is None:
-    #        policy = dtype_policies.get(f"{mode}_from_{self.dtype_policy.name}")
-    #        self.dtype_policy = policy
+    #    if not isinstance(
+    #        self.dtype_policy, dtype_policies.QuantizedDTypePolicy
+    #    ):
+    #        quantized_dtype = f"{mode}_from_{self.dtype_policy.name}"
+    #        # We set the internal `self._dtype_policy` instead of using the
+    #        # setter to avoid double `quantize` call
+    #        self._dtype_policy = dtype_policies.get(quantized_dtype)
+
+    #    # Release memory manually because sometimes the backend doesn't
+    #    gc.collect()
 
     #def _get_kernel_with_merged_lora(self):
-    #    if self.dtype_policy.quantization_mode is not None:
+    #    if isinstance(self.dtype_policy, dtype_policies.QuantizedDTypePolicy):
     #        kernel_value = self._kernel
     #        kernel_scale = self.kernel_scale
     #        if self.lora_enabled:
@@ -682,11 +744,10 @@ class mDense(Layer):
     #            kernel_value = ops.divide(kernel_value, kernel_scale)
     #            kernel_value = ops.add(
     #                kernel_value,
-    #                (self.lora_alpha / self.lora_rank)
-    #                * ops.matmul(self.lora_kernel_a, self.lora_kernel_b),
+    #                ops.matmul(self.lora_kernel_a, self.lora_kernel_b),
     #            )
     #            kernel_value, kernel_scale = quantizers.abs_max_quantize(
-    #                kernel_value, axis=0, to_numpy=True
+    #                kernel_value, axis=0
     #            )
     #            kernel_scale = ops.squeeze(kernel_scale, axis=0)
     #        return kernel_value, kernel_scale
@@ -702,7 +763,7 @@ class mDense(Layer):
         return(self.halfbandwidth)
 #class mDense
 
-#https://github.com/keras-team/keras/blob/v3.10.0/keras/src/layers/convolutional/base_conv.py
+#https://github.com/keras-team/keras/blob/master/keras/src/layers/convolutional/base_conv.py
 """Keras base class for convolution layers."""
 
 from keras.src import activations
@@ -784,11 +845,6 @@ class mBaseConv(Layer):
             computation cost of fine-tuning large dense layers.
             You can also enable LoRA on an existing layer by calling
             `layer.enable_lora(rank)`.
-        lora_alpha: Optional integer. If set, this parameter scales the
-            low-rank adaptation delta (computed as the product of two lower-rank
-            trainable matrices) during the forward pass. The delta is scaled by
-            `lora_alpha / lora_rank`, allowing you to fine-tune the strength of
-            the LoRA adjustment independently of `lora_rank`.
     """
 
     def __init__(
@@ -819,7 +875,6 @@ class mBaseConv(Layer):
         kernel_constraint=None,
         bias_constraint=None,
         lora_rank=None,
-        lora_alpha=None,
         **kwargs,
     ):
         super().__init__(activity_regularizer=activity_regularizer, **kwargs)
@@ -842,7 +897,6 @@ class mBaseConv(Layer):
         self.kernel_constraint = constraints.get(kernel_constraint)
         self.bias_constraint = constraints.get(bias_constraint)
         self.lora_rank = lora_rank
-        self.lora_alpha = lora_alpha if lora_alpha is not None else lora_rank
         self.lora_enabled = False
         self.input_spec = InputSpec(min_ndim=self.rank + 2)
         self.data_format = self.data_format
@@ -1032,7 +1086,7 @@ class mBaseConv(Layer):
 
         self.built = True
         if self.lora_rank:
-            self.enable_lora(self.lora_rank, lora_alpha=self.lora_alpha)
+            self.enable_lora(self.lora_rank)
 
     @property
     def kernel(self):
@@ -1041,9 +1095,9 @@ class mBaseConv(Layer):
                 "You must build the layer before accessing `kernel`."
             )
         if self.lora_enabled:
-            return self._kernel + (
-                self.lora_alpha / self.lora_rank
-            ) * ops.matmul(self.lora_kernel_a, self.lora_kernel_b)
+            return self._kernel + ops.matmul(
+                self.lora_kernel_a, self.lora_kernel_b
+            )
         return self._kernel
 
     def convolution_op(self, inputs, kernel):
@@ -1067,7 +1121,7 @@ class mBaseConv(Layer):
             else:
                 bias_shape = (1, self.filters) + (1,) * self.rank
             bias = ops.reshape(self.bias, bias_shape)
-            outputs = ops.add(outputs, bias)
+            outputs += bias
 
         if self.activation is not None:
             return self.activation(outputs)
@@ -1085,11 +1139,7 @@ class mBaseConv(Layer):
         )
 
     def enable_lora(
-        self,
-        rank,
-        lora_alpha=None,
-        a_initializer="he_uniform",
-        b_initializer="zeros",
+        self, rank, a_initializer="he_uniform", b_initializer="zeros"
     ):
         if self.kernel_constraint:
             raise ValueError(
@@ -1103,7 +1153,8 @@ class mBaseConv(Layer):
             )
         if self.lora_enabled:
             raise ValueError(
-                "lora is already enabled. This can only be done once per layer."
+                "lora is already enabled. "
+                "This can only be done once per layer."
             )
         self._tracker.unlock()
         self.lora_kernel_a = self.add_weight(
@@ -1122,7 +1173,6 @@ class mBaseConv(Layer):
         self._tracker.lock()
         self.lora_enabled = True
         self.lora_rank = rank
-        self.lora_alpha = lora_alpha if lora_alpha is not None else rank
 
     def save_own_variables(self, store):
         # Do nothing if the layer isn't yet built
@@ -1185,7 +1235,6 @@ class mBaseConv(Layer):
         )
         if self.lora_rank:
             config["lora_rank"] = self.lora_rank
-            config["lora_alpha"] = self.lora_alpha
         return config
 
     def _check_load_own_variables(self, store):
@@ -1231,7 +1280,7 @@ class mBaseConv(Layer):
         return(self.halfbandwidth)
 #-----
 
-#https://github.com/keras-team/keras/blob/v3.10.0/keras/src/layers/convolutional/conv2d.py
+#https://github.com/keras-team/keras/blob/master/keras/src/layers/convolutional/conv2d.py
 from keras.src.api_export import keras_export
 #from keras.src.layers.convolutional.base_conv import BaseConv
 
@@ -1245,15 +1294,6 @@ class mConv2D(mBaseConv):
     produce a tensor of outputs. If `use_bias` is True, a bias vector is created
     and added to the outputs. Finally, if `activation` is not `None`, it is
     applied to the outputs as well.
-
-    Note on numerical precision: While in general Keras operation execution
-    results are identical across backends up to 1e-7 precision in float32,
-    `Conv2D` operations may show larger variations. Due to the large
-    number of element-wise multiplications and additions in convolution
-    operations, especially with large inputs or kernel sizes, accumulated
-    floating-point differences can exceed this 1e-7 threshold. These variations
-    are particularly noticeable when using different backends (e.g., TensorFlow
-    vs JAX) or different hardware.
 
     Args:
         filters: int, the dimension of the output space (the number of filters
@@ -1347,7 +1387,7 @@ class mConv2D(mBaseConv):
         activity_regularizer=None,
         kernel_constraint=None,
         bias_constraint=None,
-        **kwargs,
+        **kwargs
     ):
         super().__init__(
             rank=2,
@@ -1367,11 +1407,11 @@ class mConv2D(mBaseConv):
             activity_regularizer=activity_regularizer,
             kernel_constraint=kernel_constraint,
             bias_constraint=bias_constraint,
-            **kwargs,
+            **kwargs
         )
 #mConv2D
 
-#https://github.com/keras-team/keras/blob/v3.10.0/keras/src/layers/convolutional/base_conv_transpose.py
+#https://github.com/keras-team/keras/blob/master/keras/src/layers/convolutional/base_conv_transpose.py
 """Keras base class for transpose convolution layers."""
 
 from keras.src import activations
@@ -1580,7 +1620,7 @@ class mBaseConvTranspose(Layer):
             self.bias = None
 
         #window initialization
-        self.wnd: float32 = np.zeros(kernel_shape)
+        self.wnd = np.zeros(kernel_shape)
         self.w_corr = 1.
         #nx = input_channel // self.groups
         ny = input_channel
@@ -1669,8 +1709,7 @@ class mBaseConvTranspose(Layer):
     def call(self, inputs):
         outputs = ops.conv_transpose(
             inputs,
-            #self.kernel * self.wnd,
-            tensorflow.cast(self.kernel * self.wnd, tensorflow.float32),
+            self.kernel * self.wnd,
             strides=list(self.strides),
             padding=self.padding,
             output_padding=self.output_padding,
@@ -1684,7 +1723,7 @@ class mBaseConvTranspose(Layer):
             else:
                 bias_shape = (1, self.filters) + (1,) * self.rank
             bias = ops.reshape(self.bias, bias_shape)
-            outputs = ops.add(outputs, bias)
+            outputs += bias
 
         if self.activation is not None:
             return self.activation(outputs)
@@ -1747,9 +1786,10 @@ class mBaseConvTranspose(Layer):
         return(self.halfbandwidth)
 #-----
 
-#https://github.com/keras-team/keras/blob/v3.10.0/keras/src/layers/convolutional/conv2d_transpose.py
+#https://github.com/keras-team/keras/blob/master/keras/src/layers/convolutional/conv2d_transpose.py
 from keras.src.api_export import keras_export
 #from keras.src.layers.convolutional.base_conv_transpose import BaseConvTranspose
+
 
 @keras_export(
     [
@@ -1859,7 +1899,7 @@ class mConv2DTranspose(mBaseConvTranspose):
         activity_regularizer=None,
         kernel_constraint=None,
         bias_constraint=None,
-        **kwargs,
+        **kwargs
     ):
         super().__init__(
             rank=2,
@@ -1878,8 +1918,7 @@ class mConv2DTranspose(mBaseConvTranspose):
             activity_regularizer=activity_regularizer,
             kernel_constraint=kernel_constraint,
             bias_constraint=bias_constraint,
-            **kwargs,
+            **kwargs
         )
-
 
 
