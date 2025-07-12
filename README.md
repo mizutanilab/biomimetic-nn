@@ -1,8 +1,8 @@
 # Bio-mimetic layers
-We have been studying brain tissues of <a href="https://dx.doi.org/10.1038/s41398-019-0427-4">humans</a>, <A href="http://doi.org/10.1038/srep35061">mice</A>, and <a href="http://dx.doi.org/10.1016/j.jsb.2013.08.012">fruit flies</a>. We implemented the obtained results into artificial neural networks to design architectures that outperform standard AIs.
+We have been studying brain tissues of <a href="https://dx.doi.org/10.1038/s41398-019-0427-4">humans</a>, <A href="https://doi.org/10.1038/s41598-025-10912-3">mice</A>, and <a href="http://dx.doi.org/10.1016/j.jsb.2013.08.012">fruit flies</a>. We implemented the obtained results into artificial neural networks to design architectures that outperform standard AIs.
 
 ## Mouse-mimetic layer excels at cat and cheese
-Mouse-mimetic layer was designed by incorporating [structural characteristics of murine neurons](https://arxiv.org/abs/2410.20735) into the artificial neural network layer. We used this mouse-mimetic layer to generate photos and found that the mouse-mimetic AIs excel at cat faces and cheese, but underperform for human faces and birds. Python scripts used in our <a href="https://arxiv.org/abs/2410.20735">study</a> which run on Keras 3.3 are available from the <a href="https://github.com/mizutanilab/biomimetic-nn/tree/master/mouse">mouse</a> folder. Its PyTorch version and example results in the Jupyter Notebook format are also provided in the <a href="https://github.com/mizutanilab/biomimetic-nn/tree/master/mouse_pytorch">mouse_pytorch</a> folder. The followings are cat-face images generated with the DDIM using the mouse-mimetic layers: <BR><BR>
+Mouse-mimetic layer was designed by incorporating [structural characteristics of murine neurons](https://doi.org/10.1038/s41598-025-10912-3) into the artificial neural network layer. We used this mouse-mimetic layer to generate photos and found that the mouse-mimetic AIs excel at cat faces and cheese, but underperform for human faces and birds. Python scripts used in our <a href="https://doi.org/10.1038/s41598-025-10912-3">study</a> which run on Keras 3.3 are available from the <a href="https://github.com/mizutanilab/biomimetic-nn/tree/master/mouse">mouse</a> folder. Its PyTorch version and example results in the Jupyter Notebook format are also provided in the <a href="https://github.com/mizutanilab/biomimetic-nn/tree/master/mouse_pytorch">mouse_pytorch</a> folder. The followings are cat-face images generated with the DDIM using the mouse-mimetic layers: <BR><BR>
 <img alt=cat_faces src="mouse/DDIM_AFHQcat_240901d_image_11249_5x2.png">
 
 ## How to implement the mouse-mimetic layer in your network
@@ -34,7 +34,7 @@ The original schizophrenia-mimicking layer is based on our [study on nanometer-s
 2020.9.24 Release of this repo.
 
 ## References
-Saiga et al (2025). Structural differences between human and mouse neurons and their implementation in generative AIs. <i>Sci. Rep.</i> in press. <a href="https://arxiv.org/abs/2410.20735">arXiv</a><BR>
+Saiga et al (2025). Structural differences between human and mouse neurons and their implementation in generative AIs. <I>Sci. Rep.</I> <B>15</B>, 25091. <a href="https://doi.org/10.1038/s41598-025-10912-3">DOI</a><BR>
 Mizutani et al (2022). Schizophrenia-mimicking layers outperform conventional neural network layers. <i>Front. Neurorobot.</i> <b>16</b>, 851471. <a href="https://doi.org/10.3389/fnbot.2022.851471">DOI</a><BR>
 Mizutani et al (2021). Structural diverseness of neurons between brain areas and between cases. <I>Transl. Psychiatry</I> <B>11</B>, 49. 
  <a href="https://doi.org/10.1038/s41398-020-01173-x">DOI</a>
