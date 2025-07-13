@@ -1,3 +1,6 @@
+#https://github.com/pytorch/pytorch/blob/main/torch/nn/modules/conv.py
+#250713: Init routines were updated.
+
 # mypy: allow-untyped-defs
 import math
 from typing import Optional, Union
@@ -234,6 +237,14 @@ class _mConvNd(Module):
         super().__setstate__(state)
         if not hasattr(self, "padding_mode"):
             self.padding_mode = "zeros"
+    def get_num_zeros(self):
+        return(self.num_weights - self.num_ones)
+    def get_num_weights(self):
+        return(self.num_weights)
+    def get_reduced_ratio(self):
+        return(self.reduced_ratio)
+    def get_halfbandwidth(self):
+        return(self.halfbandwidth)
 
 class mConv2d(_mConvNd):
     __doc__ = (
@@ -414,9 +425,6 @@ class mConv2d(_mConvNd):
         self.w_corr = 1.
         nx = in_channels // groups
         ny = self.out_channels
-        #print(self.wnd)
-        #print('nxny', nx, ny)
-        #print(kernel_size_)
         if self.form == 'individual':
           wnd = np.random.random_sample(kernel_shape)
           wnd = np.where(wnd < self.reduction_sv, 0, 1)
@@ -424,7 +432,8 @@ class mConv2d(_mConvNd):
           for ix in range(nx):
             for iy in range(ny):
               if random.random() > self.reduction_sv:
-                wnd[..., ix, iy] = 1
+                #wnd[..., ix, iy] = 1
+                wnd[iy, ix, ...] = 1
         elif self.form == 'diagonal':
           self.halfbandwidth = (nx*ny / math.sqrt(nx*nx + ny*ny)) * (1. - math.sqrt(self.reduction_sv)) 
           if ny > 1:
@@ -437,7 +446,8 @@ class mConv2d(_mConvNd):
                 continue
               ix2 = rxy * iy + hwdiv
               ix2 = math.ceil(ix2) if ix2 < nx else nx
-              wnd[..., ix1:ix2, iy:iy+1] = 1
+              #wnd[..., ix1:ix2, iy:iy+1] = 1
+              wnd[iy:iy+1, ix1:ix2, ...] = 1
             #for ixiy
           else:
             wnd = np.ones(kernel_shape)
@@ -450,7 +460,6 @@ class mConv2d(_mConvNd):
             ny2 = ny // self.output2d_width
             d1 = self.window2d_width
             d2 = self.window2d_width * self.window2d_width
-            #print('2d', nx1, nx2, ny1, ny2, d1, d2)
             #####original precise but slow version 240401
             #for ix in range(nx):
             #  for iy in range(ny):
@@ -466,7 +475,6 @@ class mConv2d(_mConvNd):
               oy = (ix // nx1) / nx2
               oymin = max(math.ceil((oy - d1) * ny2), 0)
               oymax = min(math.ceil((oy + d1) * ny2), ny2)
-              #print('ix', ix, ox, oy, oymin, oymax)
               for ky in range(oymin, oymax):
                 dx = d2 - (ky/ny2 - oy) * (ky/ny2 - oy)
                 if dx > 0:
@@ -476,15 +484,12 @@ class mConv2d(_mConvNd):
                   if (oxmax > oxmin) :
                     #wnd[..., ix, (ky*ny1+oxmin):(ky*ny1+oxmax)] = 1
                     wnd[(ky*ny1+oxmin):(ky*ny1+oxmax), ix, ...] = 1
-                    #self.num_ones += oxmax - oxmin
                   #endif
                 #endif dx > 0
               #for ky
             #for ixiy
           else:
-            #self.wnd[:,:] = 1
             wnd = np.ones(kernel_shape)
-            #self.num_ones += nx
           #endif ny>1
         #endif self.form
         self.num_ones = np.sum(wnd)
@@ -626,6 +631,15 @@ class _mConvTransposeNd(_mConvNd):
 
             ret = res
         return ret
+
+    def get_num_zeros(self):
+        return(self.num_weights - self.num_ones)
+    def get_num_weights(self):
+        return(self.num_weights)
+    def get_reduced_ratio(self):
+        return(self.reduced_ratio)
+    def get_halfbandwidth(self):
+        return(self.halfbandwidth)
 
 class mConvTranspose2d(_mConvTransposeNd):
     __doc__ = (
@@ -807,9 +821,6 @@ class mConvTranspose2d(_mConvTransposeNd):
         self.w_corr = 1.
         nx = out_channels // groups
         ny = self.in_channels
-        #print(self.wnd)
-        #print('nxny', nx, ny)
-        #print(kernel_size_)
         if self.form == 'individual':
           wnd = np.random.random_sample(kernel_shape)
           wnd = np.where(wnd < self.reduction_sv, 0, 1)
@@ -817,7 +828,8 @@ class mConvTranspose2d(_mConvTransposeNd):
           for ix in range(nx):
             for iy in range(ny):
               if random.random() > self.reduction_sv:
-                wnd[..., ix, iy] = 1
+                #wnd[..., ix, iy] = 1
+                wnd[iy, ix, ...] = 1
         elif self.form == 'diagonal':
           self.halfbandwidth = (nx*ny / math.sqrt(nx*nx + ny*ny)) * (1. - math.sqrt(self.reduction_sv)) 
           if ny > 1:
@@ -830,7 +842,8 @@ class mConvTranspose2d(_mConvTransposeNd):
                 continue
               ix2 = rxy * iy + hwdiv
               ix2 = math.ceil(ix2) if ix2 < nx else nx
-              wnd[..., ix1:ix2, iy:iy+1] = 1
+              #wnd[..., ix1:ix2, iy:iy+1] = 1
+              wnd[iy:iy+1, ix1:ix2, ...] = 1
             #for ixiy
           else:
             wnd = np.ones(kernel_shape)
@@ -843,7 +856,6 @@ class mConvTranspose2d(_mConvTransposeNd):
             ny2 = ny // self.output2d_width
             d1 = self.window2d_width
             d2 = self.window2d_width * self.window2d_width
-            #print('2d', nx1, nx2, ny1, ny2, d1, d2)
             #####original precise but slow version 240401
             #for ix in range(nx):
             #  for iy in range(ny):
@@ -859,7 +871,6 @@ class mConvTranspose2d(_mConvTransposeNd):
               oy = (ix // nx1) / nx2
               oymin = max(math.ceil((oy - d1) * ny2), 0)
               oymax = min(math.ceil((oy + d1) * ny2), ny2)
-              #print('ix', ix, ox, oy, oymin, oymax)
               for ky in range(oymin, oymax):
                 dx = d2 - (ky/ny2 - oy) * (ky/ny2 - oy)
                 if dx > 0:
@@ -869,15 +880,12 @@ class mConvTranspose2d(_mConvTransposeNd):
                   if (oxmax > oxmin) :
                     #wnd[..., ix, (ky*ny1+oxmin):(ky*ny1+oxmax)] = 1
                     wnd[(ky*ny1+oxmin):(ky*ny1+oxmax), ix, ...] = 1
-                    #self.num_ones += oxmax - oxmin
                   #endif
                 #endif dx > 0
               #for ky
             #for ixiy
           else:
-            #self.wnd[:,:] = 1
             wnd = np.ones(kernel_shape)
-            #self.num_ones += nx
           #endif ny>1
         #endif self.form
         self.num_ones = np.sum(wnd)
