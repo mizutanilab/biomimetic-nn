@@ -1,6 +1,8 @@
-#https://github.com/pytorch/pytorch/blob/main/torch/nn/modules/conv.py
+#mouseLayers for PyTorch 2.7
 #250713: Init routines were updated.
+#250715: mLinear
 
+#https://github.com/pytorch/pytorch/blob/main/torch/nn/modules/conv.py
 # mypy: allow-untyped-defs
 import math
 from typing import Optional, Union
@@ -17,12 +19,12 @@ from torch.nn.parameter import Parameter, UninitializedParameter
 from torch.nn.modules import Module
 from torch.nn.modules.utils import _pair, _reverse_repeat_tuple, _single, _triple
 
-import math
 import numpy as np
 
 __all__ = [
     "mConv2d",
     "mConvTranspose2d",
+    "mLinear",
 ]
 
 convolution_notes = {
@@ -935,3 +937,203 @@ class mConvTranspose2d(_mConvTransposeNd):
             self.groups,
             self.dilation,
         )
+
+#https://github.com/pytorch/pytorch/blob/main/torch/nn/modules/linear.py
+#import math
+#from typing import Any
+
+#import torch
+#from torch import Tensor
+#from torch.nn import functional as F, init
+#from torch.nn.parameter import Parameter, UninitializedParameter
+
+#from .lazy import LazyModuleMixin
+#from .module import Module
+
+class mLinear(Module):
+    r"""Applies an affine linear transformation to the incoming data: :math:`y = xA^T + b`.
+
+    This module supports :ref:`TensorFloat32<tf32_on_ampere>`.
+
+    On certain ROCm devices, when using float16 inputs this module will use :ref:`different precision<fp16_on_mi200>` for backward.
+
+    Args:
+        in_features: size of each input sample
+        out_features: size of each output sample
+        bias: If set to ``False``, the layer will not learn an additive bias.
+            Default: ``True``
+
+    Shape:
+        - Input: :math:`(*, H_\text{in})` where :math:`*` means any number of
+          dimensions including none and :math:`H_\text{in} = \text{in\_features}`.
+        - Output: :math:`(*, H_\text{out})` where all but the last dimension
+          are the same shape as the input and :math:`H_\text{out} = \text{out\_features}`.
+
+    Attributes:
+        weight: the learnable weights of the module of shape
+            :math:`(\text{out\_features}, \text{in\_features})`. The values are
+            initialized from :math:`\mathcal{U}(-\sqrt{k}, \sqrt{k})`, where
+            :math:`k = \frac{1}{\text{in\_features}}`
+        bias:   the learnable bias of the module of shape :math:`(\text{out\_features})`.
+                If :attr:`bias` is ``True``, the values are initialized from
+                :math:`\mathcal{U}(-\sqrt{k}, \sqrt{k})` where
+                :math:`k = \frac{1}{\text{in\_features}}`
+
+    Examples::
+
+        >>> m = nn.Linear(20, 30)
+        >>> input = torch.randn(128, 20)
+        >>> output = m(input)
+        >>> print(output.size())
+        torch.Size([128, 30])
+    """
+
+    __constants__ = ["in_features", "out_features"]
+    in_features: int
+    out_features: int
+    weight: Tensor
+    window: Tensor
+
+    def __init__(
+        self,
+        in_features: int,
+        out_features: int,
+        bias: bool = True,
+
+        halfbandwidth: float = 0, 
+        param_reduction: float = 0.5, 
+        form: str ='diagonal', 
+        input2d_width: int =10, 
+        output2d_width: int =10,
+        window2d_width: float =1.41, 
+        print_param_usage: bool =False,
+
+        device=None,
+        dtype=None,
+    ) -> None:
+        factory_kwargs = {"device": device, "dtype": dtype}
+        super().__init__()
+        self.in_features = in_features
+        self.out_features = out_features
+
+        self.halfbandwidth = halfbandwidth
+        self.reduction_sv = param_reduction
+        self.form = form
+        self.input2d_width = input2d_width
+        self.output2d_width = output2d_width
+        self.window2d_width = window2d_width
+        self.print_param_usage = print_param_usage
+        self.num_ones = 0
+        self.reduced_ratio = 0
+        self.num_weights = 0
+        self.reduced_ratio = 0
+        
+        self.weight = Parameter(
+            torch.empty((out_features, in_features), **factory_kwargs)
+        )
+        if bias:
+            self.bias = Parameter(torch.empty(out_features, **factory_kwargs))
+        else:
+            self.register_parameter("bias", None)
+        self.reset_parameters()
+
+        #window initialization
+        kernel_shape = (out_features, in_features)
+        wnd =np.zeros(kernel_shape)
+        self.w_corr = 1.
+        nx = in_features
+        ny = out_features
+        if self.form == 'individual':
+          wnd = np.random.random_sample(kernel_shape)
+          wnd = np.where(wnd < self.reduction_sv, 0, 1)
+        elif self.form == 'diagonal':
+          self.halfbandwidth = (nx*ny / math.sqrt(nx*nx + ny*ny)) * (1. - math.sqrt(self.reduction_sv)) 
+          if ny > 1:
+            rxy = (nx-1) / (ny-1)
+            hwdiv = self.halfbandwidth * math.sqrt(rxy * rxy + 1)
+            for iy in range(ny):
+              ix1 = rxy * iy - hwdiv
+              ix1 = int(ix1) + 1 if ix1 >= 0 else 0
+              if ix1 > nx-1:
+                continue
+              ix2 = rxy * iy + hwdiv
+              ix2 = math.ceil(ix2) if ix2 < nx else nx
+              #wnd[..., ix1:ix2, iy:iy+1] = 1
+              wnd[iy:iy+1, ix1:ix2] = 1
+            #for ixiy
+          else:
+            wnd = np.ones(kernel_shape)
+          #endif ny>1
+        elif self.form == '2d':
+          if ny > 1:
+            nx1 = self.input2d_width
+            nx2 = nx // self.input2d_width
+            ny1 = self.output2d_width
+            ny2 = ny // self.output2d_width
+            d1 = self.window2d_width
+            d2 = self.window2d_width * self.window2d_width
+            #####original precise but slow version 240401
+            #for ix in range(nx):
+            #  for iy in range(ny):
+            #    dx = (ix % nx1) / nx1 - (iy % ny1) / ny1
+            #    dy = (ix // nx1) / nx2 - (iy // ny1) / ny2
+            #    if (dx * dx + dy * dy < d2): 
+            #      wnd[ix][iy] = 1
+            #      self.num_ones += 1
+            #    #endif
+            #####integer version 240406
+            for ix in range(nx):
+              ox = (ix % nx1) / nx1
+              oy = (ix // nx1) / nx2
+              oymin = max(math.ceil((oy - d1) * ny2), 0)
+              oymax = min(math.ceil((oy + d1) * ny2), ny2)
+              for ky in range(oymin, oymax):
+                dx = d2 - (ky/ny2 - oy) * (ky/ny2 - oy)
+                if dx > 0:
+                  dx = math.sqrt(dx)
+                  oxmin = max(math.ceil((ox - dx) * ny1), 0)
+                  oxmax = min(math.ceil((ox + dx) * ny1), ny1)
+                  if (oxmax > oxmin) :
+                    #wnd[..., ix, (ky*ny1+oxmin):(ky*ny1+oxmax)] = 1
+                    wnd[(ky*ny1+oxmin):(ky*ny1+oxmax), ix] = 1
+                  #endif
+                #endif dx > 0
+              #for ky
+            #for ixiy
+          else:
+            wnd = np.ones(kernel_shape)
+          #endif ny>1
+        #endif self.form
+        self.num_ones = np.sum(wnd)
+        self.num_weights = wnd.size
+        self.reduced_ratio = (self.num_weights - self.num_ones) / self.num_weights
+        if self.num_ones > 0:
+          self.w_corr = self.num_weights / self.num_ones
+        if (self.print_param_usage): print ("param %usage:", 100.0/self.w_corr)
+        self.window = Parameter(torch.Tensor(wnd))
+        self.weight = Parameter(self.weight * torch.Tensor(wnd * self.w_corr))        
+
+    def reset_parameters(self) -> None:
+        # Setting a=sqrt(5) in kaiming_uniform is the same as initializing with
+        # uniform(-1/sqrt(in_features), 1/sqrt(in_features)). For details, see
+        # https://github.com/pytorch/pytorch/issues/57109
+        init.kaiming_uniform_(self.weight, a=math.sqrt(5))
+        if self.bias is not None:
+            fan_in, _ = init._calculate_fan_in_and_fan_out(self.weight)
+            bound = 1 / math.sqrt(fan_in) if fan_in > 0 else 0
+            init.uniform_(self.bias, -bound, bound)
+
+    def forward(self, input: Tensor) -> Tensor:
+        return F.linear(input, self.weight * self.window, self.bias)
+
+    def extra_repr(self) -> str:
+        return f"in_features={self.in_features}, out_features={self.out_features}, bias={self.bias is not None}"
+
+    def get_num_zeros(self):
+        return(self.num_weights - self.num_ones)
+    def get_num_weights(self):
+        return(self.num_weights)
+    def get_reduced_ratio(self):
+        return(self.reduced_ratio)
+    def get_halfbandwidth(self):
+        return(self.halfbandwidth)
